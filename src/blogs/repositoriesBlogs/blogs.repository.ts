@@ -51,4 +51,7 @@ export class BlogsRepository {
 
         return;
     }
+
 }
+
+export const blogsRepository = new BlogsRepository();

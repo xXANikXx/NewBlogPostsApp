@@ -8,7 +8,6 @@ import {
 import {
     PostListRequestPayload
 } from "../../../posts/routers/request-payloads/post-list-request.payload";
-import {matchedData} from "express-validator";
 
 export async function getBlogPostListHandler(
     req: Request<{ id: string }, {}, {}, PostListRequestPayload>,
@@ -16,6 +15,7 @@ export async function getBlogPostListHandler(
 ) {
     try {
         const blogId = req.params.id;
+
         const queryInput = req.query;
 
         const postListOutput = await postsQueryService.findPostsByBlog(

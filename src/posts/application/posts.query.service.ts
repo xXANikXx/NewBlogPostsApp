@@ -7,6 +7,7 @@ import {
 import {
     PostListRequestPayload
 } from "../routers/request-payloads/post-list-request.payload";
+import {blogsRepository} from "../../blogs/repositoriesBlogs/blogs.repository";
 
 class PostsQueryService {
     private postsQueryRepository: PostsQueryRepository;
@@ -24,6 +25,7 @@ class PostsQueryService {
         queryDto: PostListRequestPayload,
         blogId: string,
     ): Promise<PostListPaginatedOutput>{
+        await blogsRepository.findByIdOrFail(blogId);
         return this.postsQueryRepository.findPostsByBlog(queryDto, blogId);
     }
 

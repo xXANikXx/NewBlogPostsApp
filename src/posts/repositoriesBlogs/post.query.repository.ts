@@ -16,6 +16,10 @@ import {
 import {
     PostListRequestPayload
 } from "../routers/request-payloads/post-list-request.payload";
+import {
+    DEFAULT_PAGE_NUMBER,
+    DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
+} from "../../core/middlewares/query-pagination-sorting.validation-middleware";
 
 
 export class PostsQueryRepository {
@@ -46,19 +50,19 @@ export class PostsQueryRepository {
         queryDto: PostListRequestPayload,
         blogId: string,
     ): Promise<PostListPaginatedOutput> {
-        const {pageNumber, pageSize, sortBy, sortDirection} = queryDto;
 
-        const pageNumberNum = Number(pageNumber) || 1;
-        const pageSizeNum = Number(pageSize) || 10;
+        const pageNumberNum = Number(queryDto.pageNumber) || DEFAULT_PAGE_NUMBER;
+        const pageSizeNum = Number(queryDto.pageSize) || DEFAULT_PAGE_SIZE;
+        const sortBy = queryDto.sortBy || DEFAULT_SORT_BY;
+        const sortDirection = queryDto.sortDirection === 'asc' ? 1 : -1;
 
-
-        const filter = {'blogId': blogId};
+        const filter = { blogId };
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const [items, totalCount] = await Promise.all([
             postCollection
                 .find(filter)
-                .sort({[sortBy]: sortDirection})
+                .sort({ [sortBy]: sortDirection })
                 .skip(skip)
                 .limit(pageSizeNum)
                 .toArray(),
