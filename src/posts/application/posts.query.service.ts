@@ -1,0 +1,36 @@
+
+import {PostListPaginatedOutput} from "./output/post-list-paginated.output";
+import {PostOutput} from "./output/post.output";
+import {
+    PostsQueryRepository
+} from "../repositoriesBlogs/post.query.repository";
+import {
+    PostListRequestPayload
+} from "../routers/request-payloads/post-list-request.payload";
+
+class PostsQueryService {
+    private postsQueryRepository: PostsQueryRepository;
+    constructor() {
+        this.postsQueryRepository = new PostsQueryRepository();
+    }
+
+    async findMany(
+        queryDto: PostListRequestPayload,
+    ): Promise<PostListPaginatedOutput> {
+        return this.postsQueryRepository.findMany(queryDto);
+    }
+
+    async findPostsByBlog(
+        queryDto: PostListRequestPayload,
+        blogId: string,
+    ): Promise<PostListPaginatedOutput>{
+        return this.postsQueryRepository.findPostsByBlog(queryDto, blogId);
+    }
+
+    async findByIdOrFail(id: string): Promise<PostOutput> {
+        return this.postsQueryRepository.findByIdOrFail(id);
+    }
+
+}
+
+export const postsQueryService = new PostsQueryService();
