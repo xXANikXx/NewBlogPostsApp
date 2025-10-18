@@ -12,6 +12,10 @@ import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
 import {mapToUserOutput} from "../application/mappers/map-to-user-list-output";
+import {
+    DEFAULT_PAGE_NUMBER,
+    DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
+} from "../../core/middlewares/query-pagination-sorting.validation-middleware";
 
 
 export class UserQueryRepository {
@@ -27,7 +31,10 @@ export class UserQueryRepository {
             searchUserEmailTerm,
         } = queryDto;
 
-        const skip = (pageNumber - 1) * pageSize;
+        const pageNumberNum = Number(pageNumber) || DEFAULT_PAGE_NUMBER;
+        const pageSizeNum = Number(pageSize) || DEFAULT_PAGE_SIZE;
+        const sortByField = sortBy || DEFAULT_SORT_BY;
+        const sortDir = sortDirection === 'asc' ? 1 : -1;
 
         const filter: any = {};
 
@@ -43,20 +50,22 @@ export class UserQueryRepository {
             [sortBy]: sortDirection === 'asc' ? 1 : -1,
         };
 
+        const skip = (pageNumberNum - 1) * pageSizeNum;
+
         // 3️⃣ Запрос в Mongo
         const [items, totalCount] = await Promise.all([
             userCollection
                 .find(filter)
-                .sort({[sortBy]: sortDirection})
+                .sort(sort)
                 .skip(skip)
-                .limit(pageSize)
+                .limit(pageSizeNum)
                 .toArray(),
             userCollection.countDocuments(filter)
         ])
 
         return mapToUserListPaginatedOutput(items, {
-            pageNumber,
-            pageSize,
+            pageNumber: pageNumberNum,
+            pageSize: pageSizeNum,
             totalCount,
         })
     }

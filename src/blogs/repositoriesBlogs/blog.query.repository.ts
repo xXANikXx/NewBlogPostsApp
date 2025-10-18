@@ -12,6 +12,10 @@ import {blogCollection} from "../../db/mongo.db";
 import {
     mapToBlogListPaginatedOutput
 } from "../application/mappers/map-to-blog-list-paginated-output";
+import {
+    DEFAULT_PAGE_NUMBER,
+    DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
+} from "../../core/middlewares/query-pagination-sorting.validation-middleware";
 
 
 export class BlogQueryRepository {
@@ -26,8 +30,14 @@ export class BlogQueryRepository {
             searchBlogNameTerm,
         } = queryDto;
 
+
+        const pageNumberNum = Number(pageNumber) || DEFAULT_PAGE_NUMBER;
+        const pageSizeNum = Number(pageSize) || DEFAULT_PAGE_SIZE;
+        const sortByField = sortBy || DEFAULT_SORT_BY;
+        const sortDir = sortDirection === 'asc' ? 1 : -1;
+
         // 1️⃣ Пагинация и фильтр
-        const skip = (pageNumber - 1) * pageSize;
+        const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const filter = searchBlogNameTerm
             ? { name: { $regex: searchBlogNameTerm, $options: 'i' } }
@@ -42,9 +52,9 @@ export class BlogQueryRepository {
        const [items, totalCount] = await Promise.all([
            blogCollection
                .find(filter)
-               .sort({[sortBy]: sortDirection})
+               .sort({[sortByField]: sortDir})
                .skip(skip)
-           .limit(pageSize)
+           .limit(pageSizeNum)
                .toArray(),
            blogCollection.countDocuments(filter)
        ])

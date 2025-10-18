@@ -26,22 +26,27 @@ export class PostsQueryRepository {
     async findMany(
         queryDto: PostListRequestPayload,
     ): Promise<PostListPaginatedOutput> {
-        const {pageNumber, pageSize, sortBy, sortDirection } = queryDto;
+        const pageNumberNum = Number(queryDto.pageNumber) || DEFAULT_PAGE_NUMBER;
+        const pageSizeNum = Number(queryDto.pageSize) || DEFAULT_PAGE_SIZE;
+        const sortByField = queryDto.sortBy || DEFAULT_SORT_BY;
+        const sortDir = queryDto.sortDirection === 'asc' ? 1 : -1;
+
+        const skip = (pageNumberNum - 1) * pageSizeNum;
         const filter = {};
-        const skip = (pageNumber - 1) * pageSize;
+
 
         const [items, totalCount] = await Promise.all([
             postCollection
                 .find(filter)
-                .sort({ [sortBy]: sortDirection })
+                .sort({[sortByField]: sortDir })
                 .skip(skip)
-                .limit(pageSize)
+                .limit(pageSizeNum)
                 .toArray(),
             postCollection.countDocuments(filter),
         ]);
         return mapToPostListPaginatedOutput(items, {
-            pageNumber,
-            pageSize,
+            pageNumber: pageNumberNum,
+            pageSize: pageSizeNum,
             totalCount,
         });
     }
