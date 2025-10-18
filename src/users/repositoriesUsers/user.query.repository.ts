@@ -27,8 +27,8 @@ export class UserQueryRepository {
             pageSize,
             sortBy,
             sortDirection,
-            searchUserLoginTerm,
-            searchUserEmailTerm,
+            searchLoginTerm,
+            searchEmailTerm,
         } = queryDto;
 
         const pageNumberNum = Number(pageNumber) || DEFAULT_PAGE_NUMBER;
@@ -38,12 +38,12 @@ export class UserQueryRepository {
 
         const filter: any = {};
 
-        if (searchUserLoginTerm) {
-            filter.login = { $regex: searchUserLoginTerm, $options: 'i' };
+        if (searchLoginTerm) {
+            filter.login = { $regex: searchLoginTerm, $options: 'i' };
         }
 
-        if (searchUserEmailTerm) {
-            filter.email = { $regex: searchUserEmailTerm, $options: 'i' };
+        if (searchEmailTerm) {
+            filter.email = { $regex: searchEmailTerm, $options: 'i' };
         }
 
         const sort: Record<string, 1 | -1> = {

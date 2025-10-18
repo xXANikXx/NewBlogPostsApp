@@ -6,6 +6,6 @@ import {UserSortField} from "../../routers/request-payloads/user-soft-field";
 
 export type UserListQuery = PaginationAndSorting<UserSortField> &
     Partial<{
-    searchUserLoginTerm: string;
-    searchUserEmailTerm: string;
+    searchLoginTerm: string;
+    searchEmailTerm: string;
     }>

@@ -27,7 +27,7 @@ export class BlogQueryRepository {
             pageSize,
             sortBy,
             sortDirection,
-            searchBlogNameTerm,
+            searchNameTerm,
         } = queryDto;
 
 
@@ -39,14 +39,9 @@ export class BlogQueryRepository {
         // 1️⃣ Пагинация и фильтр
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
-        const filter = searchBlogNameTerm
-            ? { name: { $regex: searchBlogNameTerm, $options: 'i' } }
+        const filter = queryDto.searchNameTerm
+            ? { name: { $regex: queryDto.searchNameTerm, $options: 'i' } }
             : {};
-
-        // 2️⃣ Сортировка
-        const sort: Record<string, 1 | -1> = {
-            [sortBy]: sortDirection === 'asc' ? 1 : -1,
-        };
 
         // 3️⃣ Запрос в Mongo
        const [items, totalCount] = await Promise.all([
