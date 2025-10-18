@@ -61,8 +61,8 @@ export class BlogQueryRepository {
 
         // 4️⃣ Формирование результата
         return mapToBlogListPaginatedOutput(items, {
-            pageNumber,
-            pageSize,
+            pageNumber: pageNumberNum,
+            pageSize: pageSizeNum,
             totalCount,
         });
     }
