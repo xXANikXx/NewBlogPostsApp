@@ -22,7 +22,11 @@ export const authService = {
                 data: null,
             };
 
+        console.log('LOG 3: Creating token for ID/Login:', result.data!._id, result.data!.login);
+
         const accessToken = await jwtService.createToken(result.data!._id.toString(), result.data!.login);
+
+        console.log('LOG 4: Token created.');
 
         return {
             status: ResultStatus.Success,
@@ -36,6 +40,10 @@ export const authService = {
         password: string,
     ): Promise<Result<WithId<UserDomainDto> | null>> {
         const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
+
+        console.log('LOG 1: User found?', !!user);
+        console.log('LOG 1.1: Password Hash:', user ? user.passwordHash : 'N/A');
+
         if (!user)
             return {
                 status: ResultStatus.NotFound,
@@ -45,6 +53,8 @@ export const authService = {
             };
 
         const isPassCorrect = await bcryptService.checkPassword(password, user.passwordHash);
+        console.log('LOG 2: Password correct?', isPassCorrect);
+
         if (!isPassCorrect)
             return {
                 status: ResultStatus.BadRequest,
