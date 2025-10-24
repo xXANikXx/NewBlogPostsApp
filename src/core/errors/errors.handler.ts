@@ -4,6 +4,7 @@ import { HttpStatus } from "../typesAny/http-statuses";
 import { DomainError } from "./domain.error";
 import {createErrorMessages} from "./create-error-messages";
 import {LoginEmailError} from "./login-email.error";
+import {ForbiddenError} from "./forbidden.Error";
 
 
 export function errorHandler(error: unknown, res: Response): void {
@@ -16,6 +17,11 @@ export function errorHandler(error: unknown, res: Response): void {
                 },
             ],
         });
+        return;
+    }
+
+    if (error instanceof ForbiddenError) {
+        res.sendStatus(HttpStatus.Forbidden);
         return;
     }
 

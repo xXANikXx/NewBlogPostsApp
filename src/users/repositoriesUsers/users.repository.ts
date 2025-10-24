@@ -1,9 +1,10 @@
 import {User} from "../domain/user";
 import {userCollection} from "../../db/mongo.db";
-import {ObjectId} from "mongodb";
+import {ObjectId, WithId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
+import {UserDomainDto} from "../domain/user-domain.dto";
 
 
 export class UsersRepository {
@@ -15,9 +16,9 @@ export class UsersRepository {
         return User.reconstitute(res);
     }
 
-    async findByLoginOrEmail(login: string, email: string): Promise<User | null> {
+    async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDomainDto> | null> {
         const found = await userCollection.findOne({
-            $or: [{ email }, { login }],
+            $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
         });
 
         return found ? User.reconstitute(found) : null;
@@ -41,3 +42,5 @@ export class UsersRepository {
         return;
     }
 }
+
+export const usersRepository = new UsersRepository();

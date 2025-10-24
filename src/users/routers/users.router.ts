@@ -9,7 +9,7 @@ import {
 import {getUserHandler} from "./http-handlers/get-user-list.handler";
 import {
     superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+} from "../../auth/adapters/middlewares/super-admin.guard-middleware";
 import {userInputValidation} from "./user.input-dto.validation";
 import {createUserHandler} from "./http-handlers/create-user.handler";
 import {deleteUserHandler} from "./http-handlers/delete-user.handler";

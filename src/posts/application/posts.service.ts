@@ -5,7 +5,7 @@ import {
     CreatePostCommand,
     UpdatePostCommand
 } from "./command-handlers/post-command";
-import {PostsRepository} from "../repositoriesBlogs/posts.repository";
+import {PostsRepository} from "../repositoriesPosts/posts.repository";
 
 
 

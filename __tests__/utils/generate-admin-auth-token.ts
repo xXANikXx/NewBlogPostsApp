@@ -1,7 +1,7 @@
 import {
     ADMIN_PASSWORD,
     ADMIN_USERNAME
-} from "../../src/auth/middlewares/super-admin.guard-middleware";
+} from "../../src/auth/adapters/middlewares/super-admin.guard-middleware";
 
 
 export function generateBasicAuthToken() {

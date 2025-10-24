@@ -8,6 +8,8 @@ export class AuthRepository {
         });
         return user ? User.reconstitute(user) : null;
     }
+
+
 }
 
 export const authRepository = new AuthRepository();

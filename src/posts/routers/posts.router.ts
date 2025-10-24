@@ -13,7 +13,7 @@ import {
 import {getPostHandler} from "./http-handlers/get-post-list.handler";
 import {
     superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+} from "../../auth/adapters/middlewares/super-admin.guard-middleware";
 import {postInputDtoValidation} from "./post.input-dto.validation";
 import {createPostHandler} from "./http-handlers/create-post.handler";
 import {updatePostHandler} from "./http-handlers/update-post.handler";

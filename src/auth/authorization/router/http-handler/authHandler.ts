@@ -8,13 +8,13 @@ import {errorHandler} from "../../../../core/errors/errors.handler";
 export async function loginHandler(req: Request, res: Response) {
     try {
         const data = matchedData(req) as LoginRequestPayload;
-        const success = await authService.login(data.loginOrEmail, data.password);
+        const accessToken = await authService.loginUser(data.loginOrEmail, data.password);
 
-        if (!success) {
+        if (!accessToken) {
             return res.status(HttpStatus.Unauthorized).send(); // 401
         }
 
-        return res.status(HttpStatus.NoContent).send(); // 204
+        return res.status(HttpStatus.NoContent).send({ accessToken }); // 204
     } catch (e: unknown) {
         errorHandler(e, res);
     }

@@ -13,7 +13,7 @@ import {
 import {getBlogHandler} from "./http-handlers/get-blog-list.handler";
 import {
     superAdminGuardMiddleware
-} from "../../auth/middlewares/super-admin.guard-middleware";
+} from "../../auth/adapters/middlewares/super-admin.guard-middleware";
 import {blogInputDtoValidation} from "./blog.input-dto.validation";
 import {createBlogHandler} from "./http-handlers/create-blog.handler";
 import {updateBlogHandler} from "./http-handlers/update-blog.handler";

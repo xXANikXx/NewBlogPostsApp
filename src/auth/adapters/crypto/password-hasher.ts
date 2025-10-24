@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 
-export const passwordHasher = {
+export const bcryptService = {
     async generateHash(password: string):Promise<string> {
         return bcrypt.hash(password, 10);
     },

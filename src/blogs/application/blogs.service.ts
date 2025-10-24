@@ -4,7 +4,7 @@ import {
     UpdateBlogCommand
 } from "./command-handlers/blog-commands";
 import {BlogsRepository} from "../repositoriesBlogs/blogs.repository";
-import {PostsRepository} from "../../posts/repositoriesBlogs/posts.repository";
+import {PostsRepository} from "../../posts/repositoriesPosts/posts.repository";
 
 
 export class BlogsService {

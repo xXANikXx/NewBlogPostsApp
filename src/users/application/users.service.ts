@@ -2,12 +2,8 @@ import {CreateUserCommand} from "./command-handlers/user-commands";
 import {User} from "../domain/user";
 import {UsersRepository} from "../repositoriesUsers/users.repository";
 import {UserQueryRepository} from "../repositoriesUsers/user.query.repository";
-import {
-    RepositoryNotFoundError
-} from "../../core/errors/repository-not-found.error";
-import {userCollection} from "../../db/mongo.db";
 import {LoginEmailError} from "../../core/errors/login-email.error";
-import {passwordHasher} from "../../core/infrastructure/crypto/password-hasher";
+import {bcryptService} from "../../auth/adapters/crypto/password-hasher";
 
 
 export class UsersService {
@@ -19,26 +15,27 @@ export class UsersService {
     }
 
     async create(command: CreateUserCommand): Promise<string> {
-        const existingUser = await this.usersRepository.findByLoginOrEmail(
-            command.login,
-            command.email
-        );
+        const { login, email, password } = command;
 
-        if (existingUser) {
-            if (existingUser.email === command.email) {
-                throw new LoginEmailError('email', 'email should be unique');
-            }
-            if (existingUser.login === command.login) {
-                throw new LoginEmailError('login', 'login should be unique');
-            }
+        // 1️⃣ Проверяем, есть ли уже пользователь с таким email
+        const existingByEmail = await this.usersRepository.findByLoginOrEmail(email);
+        if (existingByEmail) {
+            throw new LoginEmailError('email', 'email should be unique');
         }
 
-        const passwordHash = await passwordHasher.generateHash(command.password);
+        // 2️⃣ Проверяем, есть ли уже пользователь с таким логином
+        const existingByLogin = await this.usersRepository.findByLoginOrEmail(login);
+        if (existingByLogin) {
+            throw new LoginEmailError('login', 'login should be unique');
+        }
 
-        // 3️⃣ Создаём пользователя
+        // 3️⃣ Хешируем пароль
+        const passwordHash = await bcryptService.generateHash(password);
+
+        // 4️⃣ Создаём пользователя через фабричный метод
         const newUser = User.create({
-            login: command.login,
-            email: command.email,
+            login,
+            email,
             passwordHash,
             createdAt: new Date().toISOString(),
         });

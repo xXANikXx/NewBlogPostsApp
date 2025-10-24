@@ -3,7 +3,7 @@ import {PostListPaginatedOutput} from "./output/post-list-paginated.output";
 import {PostOutput} from "./output/post.output";
 import {
     PostsQueryRepository
-} from "../repositoriesBlogs/post.query.repository";
+} from "../repositoriesPosts/post.query.repository";
 import {
     PostListRequestPayload
 } from "../routers/request-payloads/post-list-request.payload";
