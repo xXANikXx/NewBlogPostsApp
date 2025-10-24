@@ -3,6 +3,9 @@ import {appConfig} from "../../common/config/config";
 
 export const jwtService = {
     async createToken(userId: string, userLogin: string): Promise<string> {
+        console.log('createToken params:', { userId, userLogin, secret: appConfig.AC_SECRET, time: appConfig.AC_TIME });
+
+
         return jwt.sign({ userId, userLogin }, appConfig.AC_SECRET, {
             expiresIn: Number(appConfig.AC_TIME),
         });

@@ -11,11 +11,11 @@ export async function loginHandler(req: Request, res: Response) {
         const data = matchedData(req) as LoginRequestPayload;
         const result = await authService.loginUser(data.loginOrEmail, data.password);
 
-        if (result.status !== ResultStatus.Success || !result.data) {
+        if (result.status !== ResultStatus.Success) {
             return res.status(HttpStatus.Unauthorized).send();
         }
-
-        return res.status(HttpStatus.Ok).send(result.data); // 204
+        const accessToken = result.data!.accessToken;
+        return res.status(HttpStatus.Ok).send({accessToken}); // 204
     } catch (e: unknown) {
         errorHandler(e, res);
     }
