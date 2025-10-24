@@ -4,17 +4,18 @@ import {HttpStatus} from "../../../../core/typesAny/http-statuses";
 import {LoginRequestPayload} from "../request-payload/auth-request-payload";
 import {matchedData} from "express-validator";
 import {errorHandler} from "../../../../core/errors/errors.handler";
+import {ResultStatus} from "../../../../common/result/resultCode";
 
 export async function loginHandler(req: Request, res: Response) {
     try {
         const data = matchedData(req) as LoginRequestPayload;
-        const accessToken = await authService.loginUser(data.loginOrEmail, data.password);
+        const result = await authService.loginUser(data.loginOrEmail, data.password);
 
-        if (!accessToken) {
-            return res.status(HttpStatus.Unauthorized).send(); // 401
+        if (result.status !== ResultStatus.Success || !result.data) {
+            return res.status(HttpStatus.Unauthorized).send();
         }
 
-        return res.status(HttpStatus.NoContent).send({ accessToken }); // 204
+        return res.status(HttpStatus.Ok).send(result.data); // 204
     } catch (e: unknown) {
         errorHandler(e, res);
     }
