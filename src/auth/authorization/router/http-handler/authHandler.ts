@@ -15,10 +15,12 @@ export async function loginHandler(req: Request, res: Response) {
 
         // 2. Обработка неуспешного входа (Wrong credentials, Unauthorized)
         if (result.status !== ResultStatus.Success) {
-            // Swagger: 401 If the password or login or email is wrong
-            return res.status(HttpStatus.Unauthorized).send();
+            return res.status(HttpStatus.Unauthorized).send({
+                errorsMessages: [
+                    { message: 'Unauthorized', field: 'loginOrEmail' },
+                ],
+            });
         }
-
         // 3. Извлечение токена (строка)
         const accessToken = result.data!.accessToken;
 
