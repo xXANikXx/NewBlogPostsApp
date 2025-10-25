@@ -9,10 +9,12 @@ import {
     resultCodeToHttpException
 } from "../../../../common/result/resultCodeToHttpException";
 
-export async function loginHandler(req: Request, res: Response) {
-        const data = matchedData(req) as LoginRequestPayload;
+export async function loginHandler(req: Request<LoginRequestPayload>, res: Response) {
 
-        const result = await authService.loginUser(data.loginOrEmail, data.password);
+        const { loginOrEmail, password } = req.body;
+
+        const result = await authService.loginUser(loginOrEmail, password);
+
 
         if (result.status !== ResultStatus.Success) {
             return res.status(resultCodeToHttpException(result.status)).send(result.extensions);
@@ -20,10 +22,8 @@ export async function loginHandler(req: Request, res: Response) {
 
         console.log('RESULT.DATA:', result.data);
 
-        const accessToken = result.data!.accessToken;
-
         console.log('FINAL RESPONSE:', { accessToken: result.data?.accessToken });
 
-        return res.status(HttpStatus.Ok).json({ accessToken });
+        return res.status(HttpStatus.Ok).json({ accessToken: result.data!.accessToken });
 
 }
