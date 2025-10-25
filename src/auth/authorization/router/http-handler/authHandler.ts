@@ -10,7 +10,6 @@ import {
 } from "../../../../common/result/resultCodeToHttpException";
 
 export async function loginHandler(req: Request, res: Response) {
-    try {
         const data = matchedData(req) as LoginRequestPayload;
 
         const result = await authService.loginUser(data.loginOrEmail, data.password);
@@ -27,10 +26,4 @@ export async function loginHandler(req: Request, res: Response) {
 
         return res.status(HttpStatus.Ok).json({ accessToken });
 
-    } catch (e: unknown) {
-
-        console.error('🔥 LOGIN HANDLER ERROR:', e);
-
-        errorHandler(e, res);
-    }
 }
