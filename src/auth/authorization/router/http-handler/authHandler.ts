@@ -6,29 +6,31 @@ import {matchedData} from "express-validator";
 import {errorHandler} from "../../../../core/errors/errors.handler";
 import {ResultStatus} from "../../../../common/result/resultCode";
 
-export const loginHandler = async (req: Request, res: Response) => {
-    const { loginOrEmail, password } = req.body;
-    console.log('🔹 loginHandler input:', req.body);
-
+export async function loginHandler(req: Request, res: Response) {
     try {
-        const result = await authService.loginUser(loginOrEmail, password);
+        const data = matchedData(req) as LoginRequestPayload;
+        console.log('🔹 loginHandler input:', data);
+
+        const result = await authService.loginUser(data.loginOrEmail, data.password);
         console.log('🔹 authService result:', result);
 
-        if (result.status !== 'Success') {
-            return res.status(401).send({
-                errorsMessages: result.extensions,
-            });
-        }
+        if (result.status !== ResultStatus.Success || !result.data) {
+            console.log('❌ Login failed result:', result);
+            console.log('matchedData result:', data);
 
-        // 👇 ВАЖНО: отправляем ТОЛЬКО токен в формате text/plain
+            return res.sendStatus(HttpStatus.Unauthorized);
+        }
+        const { accessToken } = result.data;
+        console.log('✅ Access token generated:', accessToken);
+
+
         return res
             .status(HttpStatus.Ok)
-            .type('text/plain')
-            .send({ accessToken: result.data!.accessToken });
-    } catch (error) {
-        console.error('❌ loginHandler error:', error);
-        return res.status(500).send({
+            .send({ accessToken });
+    } catch (e) {
+        console.log('🔥 ERROR in loginHandler:', e);
+        return res.status(500).json({
             errorsMessages: [{ message: 'Internal server error', field: '' }],
         });
     }
-};
+}
