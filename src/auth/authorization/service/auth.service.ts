@@ -7,66 +7,33 @@ import {Result} from "../../../common/result/result.type";
 import {ResultStatus} from "../../../common/result/resultCode";
 import {WithId} from "mongodb";
 import {usersRepository} from "../../../users/repositoriesUsers/users.repository";
+import {LoginEmailError} from "../../../core/errors/login-email.error";
 
 export const authService = {
     async loginUser(
         loginOrEmail: string,
         password: string,
-    ): Promise<Result<{ accessToken: string } | null>> {
-        const result = await authService.checkUserCredentials(loginOrEmail, password);
-        if (result.status !== ResultStatus.Success)
-            return {
-                status: ResultStatus.Unauthorized,
-                errorMessage: 'Unauthorized',
-                extensions: [{ field: 'loginOrEmail', message: 'Wrong credentials' }],
-                data: null,
-            };
+    ): Promise<{ accessToken: string }> { // 👈 Тип возврата - только УСПЕХ
 
-        console.log('LOG 3: Creating token for ID/Login:', result.data!._id, result.data!.login);
-
-        const accessToken = await jwtService.createToken(result.data!._id.toString(), result.data!.login);
-
-        console.log('LOG 4: Token created.');
-
-        return {
-            status: ResultStatus.Success,
-            data: { accessToken },
-            extensions: [],
-        };
-    },
-
-    async checkUserCredentials(
-        loginOrEmail: string,
-        password: string,
-    ): Promise<Result<WithId<UserDomainDto> | null>> {
+        // 1. Проверяем данные и получаем пользователя
         const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
 
-        console.log('LOG 1: User found?', !!user);
-        console.log('LOG 1.1: Password Hash:', user ? user.passwordHash : 'N/A');
-
-        if (!user)
-            return {
-                status: ResultStatus.NotFound,
-                data: null,
-                errorMessage: 'Not Found',
-                extensions: [{ field: 'loginOrEmail', message: 'Not Found' }],
-            };
+        if (!user) {
+            // 🚨 Бросаем ошибку, которую ловит errorHandler как 401
+            throw new LoginEmailError('loginOrEmail', 'Wrong credentials');
+        }
 
         const isPassCorrect = await bcryptService.checkPassword(password, user.passwordHash);
-        console.log('LOG 2: Password correct?', isPassCorrect);
 
-        if (!isPassCorrect)
-            return {
-                status: ResultStatus.BadRequest,
-                data: null,
-                errorMessage: 'Bad Request',
-                extensions: [{ field: 'password', message: 'Wrong password' }],
-            };
+        if (!isPassCorrect) {
+            // 🚨 Бросаем ошибку, которую ловит errorHandler как 400 или 401
+            throw new LoginEmailError('password', 'Wrong password');
+        }
 
-        return {
-            status: ResultStatus.Success,
-            data: user,
-            extensions: [],
-        };
+        // 2. Создаём токен
+        const accessToken = await jwtService.createToken(user._id.toString(), user.login);
+
+        // 3. Возвращаем только успешный результат
+        return { accessToken };
     },
 };
