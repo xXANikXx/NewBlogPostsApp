@@ -4,22 +4,22 @@ import {HttpStatus} from "../../../../core/typesAny/http-statuses";
 import {LoginRequestPayload} from "../request-payload/auth-request-payload";
 import {matchedData} from "express-validator";
 import {errorHandler} from "../../../../core/errors/errors.handler";
-
-// auth.handler.ts (УПРОЩЕННАЯ ВЕРСИЯ)
+import {ResultStatus} from "../../../../common/result/resultCode";
 
 export async function loginHandler(req: Request, res: Response) {
     try {
         const data = matchedData(req) as LoginRequestPayload;
+        const result = await authService.loginUser(data.loginOrEmail, data.password);
 
-        // 1. Вызов сервиса. Если что-то не так, сервис бросит исключение,
-        // которое перейдет в блок catch.
-        const { accessToken } = await authService.loginUser(data.loginOrEmail, data.password);
+        if (result.status !== ResultStatus.Success) {
+            return res.status(HttpStatus.Unauthorized).send(result.extensions);
+        }
+        const accessToken = result.data!.accessToken;
 
-        // 2. Успешный ответ
-        return res.status(HttpStatus.Ok).json({ accessToken });
+        console.log('FINAL RESPONSE:', { accessToken });
 
+        return res.status(HttpStatus.Ok).json({ accessToken }); // 204
     } catch (e: unknown) {
-        // 3. Обработка всех брошенных ошибок
         errorHandler(e, res);
     }
 }
