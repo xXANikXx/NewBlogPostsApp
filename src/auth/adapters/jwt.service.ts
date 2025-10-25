@@ -13,7 +13,7 @@ export const jwtService = {
             timeAsNumber: Number(appConfig.AC_TIME)
         });
         return jwt.sign({ userId, userLogin }, appConfig.AC_SECRET, {
-            expiresIn: Number(appConfig.AC_TIME),
+            expiresIn: +appConfig.AC_TIME,
         });
     },
     async decodeToken(token: string): Promise<any> {

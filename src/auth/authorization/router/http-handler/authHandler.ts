@@ -9,28 +9,26 @@ import {ResultStatus} from "../../../../common/result/resultCode";
 export async function loginHandler(req: Request, res: Response) {
     try {
         const data = matchedData(req) as LoginRequestPayload;
-        console.log('🔹 loginHandler input:', data);
+        console.log("🔹 loginHandler input:", data);
 
         const result = await authService.loginUser(data.loginOrEmail, data.password);
-        console.log('🔹 authService result:', result);
+        console.log("🔹 authService result:", result);
 
         if (result.status !== ResultStatus.Success || !result.data) {
-            console.log('❌ Login failed result:', result);
-            console.log('matchedData result:', data);
-
+            console.log("❌ Login failed result:", result);
             return res.sendStatus(HttpStatus.Unauthorized);
         }
+
         const { accessToken } = result.data;
-        console.log('✅ Access token generated:', accessToken);
+        console.log("✅ Access token generated:", accessToken);
+        console.log("🚀 Sending response to client...");
 
-
-        return res
-            .status(HttpStatus.Ok)
-            .send({ accessToken });
+        // ✅ Ключевой момент — используем .json(), чтобы вернуть точный формат
+        return res.status(HttpStatus.Ok).json({ accessToken });
     } catch (e) {
-        console.log('🔥 ERROR in loginHandler:', e);
-        return res.status(500).json({
-            errorsMessages: [{ message: 'Internal server error', field: '' }],
+        console.log("🔥 ERROR in loginHandler:", e);
+        return res.status(HttpStatus.InternalServerError).json({
+            errorsMessages: [{ message: "Internal server error", field: "" }],
         });
     }
 }
