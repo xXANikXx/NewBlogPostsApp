@@ -1,29 +1,36 @@
-import {Request, Response} from "express";
-import {authService} from "../../service/auth.service";
-import {HttpStatus} from "../../../../core/typesAny/http-statuses";
-import {LoginRequestPayload} from "../request-payload/auth-request-payload";
-import {matchedData} from "express-validator";
-import {errorHandler} from "../../../../core/errors/errors.handler";
-import {ResultStatus} from "../../../../common/result/resultCode";
-import {
-    resultCodeToHttpException
-} from "../../../../common/result/resultCodeToHttpException";
-
-export async function loginHandler(req: Request<LoginRequestPayload>, res: Response) {
-
-        const { loginOrEmail, password } = req.body;
-
-        const result = await authService.loginUser(loginOrEmail, password);
-
-
-        if (result.status !== ResultStatus.Success) {
-            return res.status(resultCodeToHttpException(result.status)).send(result.extensions);
-        }
-
-        console.log('RESULT.DATA:', result.data);
-
-        console.log('FINAL RESPONSE:', { accessToken: result.data?.accessToken });
-
-        return res.status(HttpStatus.Ok).send({ accessToken: result.data!.accessToken });
-
-}
+// import {Request, Response} from "express";
+// import {authService} from "../../service/auth.service";
+// import {HttpStatus} from "../../../../core/typesAny/http-statuses";
+// import {LoginRequestPayload} from "../request-payload/auth-request-payload";
+// import {matchedData} from "express-validator";
+// import {errorHandler} from "../../../../core/errors/errors.handler";
+// import {ResultStatus} from "../../../../common/result/resultCode";
+// import {
+//     resultCodeToHttpException
+// } from "../../../../common/result/resultCodeToHttpException";
+//
+// export async function loginHandler(req: Request, res: Response) {
+//     try {
+//         const data = matchedData(req) as LoginRequestPayload;
+//
+//         const result = await authService.loginUser(data.loginOrEmail, data.password);
+//
+//         if (result.status !== ResultStatus.Success) {
+//             return res.status(resultCodeToHttpException(result.status)).send(result.extensions);
+//         }
+//
+//         console.log('RESULT.DATA:', result.data);
+//
+//         const accessToken = result.data!.accessToken;
+//
+//         console.log('FINAL RESPONSE:', { accessToken: result.data?.accessToken });
+//
+//         return res.status(HttpStatus.Ok).send({ accessToken });
+//
+//     } catch (e: unknown) {
+//
+//         console.error('🔥 LOGIN HANDLER ERROR:', e);
+//
+//         errorHandler(e, res);
+//     }
+// }
