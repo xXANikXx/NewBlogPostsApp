@@ -6,21 +6,29 @@ import {matchedData} from "express-validator";
 import {errorHandler} from "../../../../core/errors/errors.handler";
 import {ResultStatus} from "../../../../common/result/resultCode";
 
-export async function loginHandler(req: Request, res: Response) {
+export const loginHandler = async (req: Request, res: Response) => {
+    const { loginOrEmail, password } = req.body;
+    console.log('🔹 loginHandler input:', req.body);
+
     try {
-        const data = matchedData(req) as LoginRequestPayload;
-        const result = await authService.loginUser(data.loginOrEmail, data.password);
+        const result = await authService.loginUser(loginOrEmail, password);
+        console.log('🔹 authService result:', result);
 
-        if (result.status !== ResultStatus.Success || !result.data) {
-            return res.sendStatus(HttpStatus.Unauthorized);
+        if (result.status !== 'Success') {
+            return res.status(401).send({
+                errorsMessages: result.extensions,
+            });
         }
-        const { accessToken } = result.data;
 
-
+        // 👇 ВАЖНО: отправляем ТОЛЬКО токен в формате text/plain
         return res
             .status(HttpStatus.Ok)
-            .send(JSON.stringify({ accessToken }));
-    } catch (e: unknown) {
-        errorHandler(e, res);
+            .type('text/plain')
+            .send({ accessToken: result.data!.accessToken });
+    } catch (error) {
+        console.error('❌ loginHandler error:', error);
+        return res.status(500).send({
+            errorsMessages: [{ message: 'Internal server error', field: '' }],
+        });
     }
-}
+};
