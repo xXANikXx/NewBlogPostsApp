@@ -8,6 +8,11 @@ import {ForbiddenError} from "./forbidden.Error";
 
 
 export function errorHandler(error: unknown, res: Response): void {
+    if (res.headersSent) {
+        console.log('⚠️ Response already sent, skipping errorHandler');
+        return;
+    }
+
     if (error instanceof RepositoryNotFoundError) {
         res.status(HttpStatus.NotFound).send({
             errors: [

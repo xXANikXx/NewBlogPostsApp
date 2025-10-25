@@ -18,12 +18,19 @@ export async function loginHandler(req: Request, res: Response) {
         if (result.status !== ResultStatus.Success) {
             return res.status(resultCodeToHttpException(result.status)).send(result.extensions);
         }
+
+        console.log('RESULT.DATA:', result.data);
+
         const accessToken = result.data!.accessToken;
 
+        console.log('FINAL RESPONSE:', { accessToken: result.data?.accessToken });
 
-        return res.status(HttpStatus.Ok).send({ accessToken: result.data!.accessToken });
+        return res.status(HttpStatus.Ok).json({ accessToken });
 
     } catch (e: unknown) {
+
+        console.error('🔥 LOGIN HANDLER ERROR:', e);
+
         errorHandler(e, res);
     }
 }
