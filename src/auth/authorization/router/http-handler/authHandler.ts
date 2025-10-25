@@ -11,14 +11,15 @@ export async function loginHandler(req: Request, res: Response) {
         const data = matchedData(req) as LoginRequestPayload;
         const result = await authService.loginUser(data.loginOrEmail, data.password);
 
-        if (result.status !== ResultStatus.Success) {
-            return res.status(HttpStatus.Unauthorized).send(result.extensions);
+        if (result.status !== ResultStatus.Success || !result.data) {
+            return res.sendStatus(HttpStatus.Unauthorized);
         }
-        const accessToken = result.data!.accessToken;
+        const { accessToken } = result.data;
 
-        console.log('FINAL RESPONSE:', { accessToken });
 
-        return res.status(HttpStatus.Ok).json({ accessToken }); // 204
+        return res
+            .status(HttpStatus.Ok)
+            .send(JSON.stringify({ accessToken }));
     } catch (e: unknown) {
         errorHandler(e, res);
     }
