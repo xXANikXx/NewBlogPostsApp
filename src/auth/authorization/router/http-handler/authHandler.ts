@@ -24,6 +24,6 @@ export async function loginHandler(req: Request<LoginRequestPayload>, res: Respo
 
         console.log('FINAL RESPONSE:', { accessToken: result.data?.accessToken });
 
-        return res.status(HttpStatus.Ok).json({ accessToken: result.data!.accessToken });
+        return res.status(HttpStatus.Ok).send({ accessToken: result.data!.accessToken });
 
 }
