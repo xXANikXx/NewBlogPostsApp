@@ -16,8 +16,9 @@ export async function loginHandler(req: Request, res: Response) {
 
         if (result.status !== ResultStatus.Success || !result.data) {
             console.log("❌ Login failed result:", result);
-            return res.sendStatus(HttpStatus.Unauthorized);
-        }
+            return res.status(HttpStatus.Unauthorized).json({
+                errorsMessages: result.extensions
+            });        }
 
         const { accessToken } = result.data;
         console.log("✅ Access token generated:", accessToken);
@@ -25,10 +26,7 @@ export async function loginHandler(req: Request, res: Response) {
 
         // ✅ Ключевой момент — используем .json(), чтобы вернуть точный формат
         return res.status(HttpStatus.Ok).json({ accessToken });
-    } catch (e) {
-        console.log("🔥 ERROR in loginHandler:", e);
-        return res.status(HttpStatus.InternalServerError).json({
-            errorsMessages: [{ message: "Internal server error", field: "" }],
-        });
+    } catch (e: unknown) {
+       errorHandler(e, res);
     }
 }
