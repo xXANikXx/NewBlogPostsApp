@@ -15,18 +15,27 @@ export class CommentsRepository{
         return Comment.reconstitute(res);
     }
 
-    async save(comment: Comment): Promise<Comment> {
+    async save(comment: Comment, postId?: ObjectId): Promise<Comment> {
         if (!comment._id) {
             const insertResult = await commentCollection.insertOne(comment);
 
             comment._id = insertResult.insertedId;
+
+            return comment;
         } else {
+
+            const {_id, ...dtoToUpdate} = comment;
+
             const updateResult = await commentCollection.updateOne(
-                { _id: new ObjectId(comment._id) },
-                { $set: { content: comment.content } }
+                {
+                    _id,
+                },
+                {
+                    $set: dtoToUpdate,
+                },
             );
 
-            if (updateResult.matchedCount === 0) {
+            if (updateResult.matchedCount < 1) {
                 throw new RepositoryNotFoundError('Comment not found for update');
             }
         }
