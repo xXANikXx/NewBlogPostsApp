@@ -20,7 +20,17 @@ export class CommentsRepository{
             const insertResult = await commentCollection.insertOne(comment);
 
             comment._id = insertResult.insertedId;
+        } else {
+            const updateResult = await commentCollection.updateOne(
+                { _id: new ObjectId(comment._id) },
+                { $set: { content: comment.content } }
+            );
+
+            if (updateResult.matchedCount === 0) {
+                throw new RepositoryNotFoundError('Comment not found for update');
+            }
         }
+
         return comment;
     }
 

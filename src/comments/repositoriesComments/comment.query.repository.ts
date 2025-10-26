@@ -33,7 +33,7 @@ export class CommentQueryRepository {
         const sortBy = queryDto.sortBy || DEFAULT_SORT_BY;
         const sortDirection = queryDto.sortDirection === 'asc' ? 1 : -1;
 
-        const filter = { postId };
+        const filter = { postId: new ObjectId(postId) };
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const [items, totalCount] = await Promise.all([
