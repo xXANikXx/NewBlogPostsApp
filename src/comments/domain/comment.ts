@@ -10,13 +10,14 @@ commentatorInfo: {
     userLogin: string;
 }
     createdAt: string;
+    postId: string;
 
 
 private constructor(dto: ClassFieldsOnly<Comment>) {
     this.content = dto.content;
     this.commentatorInfo = dto.commentatorInfo;
     this.createdAt = dto.createdAt;
-
+this.postId = dto.postId;
     if(dto._id) {
         this._id = dto._id;
     }
@@ -27,6 +28,7 @@ static create (dto: CommentDomainDto) {
         content: dto.content,
         commentatorInfo: dto.commentatorInfo,
         createdAt: dto.createdAt,
+        postId: dto.postId,
     })
 }
 

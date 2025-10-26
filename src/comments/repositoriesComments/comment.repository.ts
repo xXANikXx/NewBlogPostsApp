@@ -15,7 +15,7 @@ export class CommentsRepository{
         return Comment.reconstitute(res);
     }
 
-    async save(comment: Comment, postId?: ObjectId): Promise<Comment> {
+    async save(comment: Comment): Promise<Comment> {
         if (!comment._id) {
             const insertResult = await commentCollection.insertOne(comment);
 

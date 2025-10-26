@@ -5,4 +5,5 @@ export type CommentDomainDto = {
         userLogin: string;
     },
     createdAt: string;
+    postId: string;
 }

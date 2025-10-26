@@ -9,7 +9,6 @@ import {
 import {Comment} from "../domain/comment";
 import {CommentsRepository} from "../repositoriesComments/comment.repository";
 import {ForbiddenError} from "../../core/errors/forbidden.Error";
-import {ObjectId} from "mongodb";
 
 export class CommentsService {
     private commentsRepository: CommentsRepository;
@@ -57,10 +56,10 @@ export class CommentsService {
                 userLogin: dto.userLogin,
             },
             createdAt: new Date().toISOString(),
+            postId: dto.postId,
         })
 
-        const createdCommentsByBlog = await this.commentsRepository.save(
-            newComment, new ObjectId(dto.postId));
+        const createdCommentsByBlog = await this.commentsRepository.save(newComment);
 
         return createdCommentsByBlog._id!.toString();
     }

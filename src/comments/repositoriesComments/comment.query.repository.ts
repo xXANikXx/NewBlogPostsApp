@@ -8,7 +8,7 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
-import {commentCollection, postCollection} from "../../db/mongo.db";
+import {commentCollection} from "../../db/mongo.db";
 import {
     mapToCommentListPaginatedOutput
 } from "../application/mappers/map-to-comment-list-paginated-output";
@@ -33,7 +33,7 @@ export class CommentQueryRepository {
         const sortBy = queryDto.sortBy || DEFAULT_SORT_BY;
         const sortDirection = queryDto.sortDirection === 'asc' ? 1 : -1;
 
-        const filter = { postId: new ObjectId(postId) };
+        const filter = { postId: postId };
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const [items, totalCount] = await Promise.all([
