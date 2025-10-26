@@ -11,7 +11,6 @@ import {
 } from "../../auth/adapters/middlewares/access.token.guard";
 import {updateCommentHandler} from "./http-handlers/update-comment.handler";
 import {deleteCommentHandler} from "./http-handlers/delete-comment.handler";
-import {COMMENTS_PATH, POSTS_PATH} from "../../core/paths/paths";
 import {
     paginationAndSortingValidation
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
@@ -31,5 +30,3 @@ commentRouter
     .get("/:id", idValidation, inputValidationResultMiddleware, getCommentHandler)
     .put("/:id", accessTokenGuard, idValidation, commentInputDtoValidation, inputValidationResultMiddleware, updateCommentHandler)
 .delete("/:id", accessTokenGuard, idValidation, inputValidationResultMiddleware,deleteCommentHandler)
-.get(`${POSTS_PATH}/:postId${COMMENTS_PATH}`, idValidation, paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, getCommentsByPostHandler)
-.post(`${POSTS_PATH}/:postId${COMMENTS_PATH}`, accessTokenGuard, idValidation, commentInputDtoValidation,inputValidationResultMiddleware, createCommentsByPostHandler)

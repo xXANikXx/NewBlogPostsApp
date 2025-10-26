@@ -18,6 +18,22 @@ import {postInputDtoValidation} from "./post.input-dto.validation";
 import {createPostHandler} from "./http-handlers/create-post.handler";
 import {updatePostHandler} from "./http-handlers/update-post.handler";
 import {deletePost} from "./http-handlers/delete-post.handler";
+import {COMMENTS_PATH, POSTS_PATH} from "../../core/paths/paths";
+import {
+    CommentSortField
+} from "../../comments/routers/request-payloads/comment-sort-field";
+import {
+    getCommentsByPostHandler
+} from "../../comments/routers/http-handlers/get-comments-post.handler";
+import {
+    accessTokenGuard
+} from "../../auth/adapters/middlewares/access.token.guard";
+import {
+    commentInputDtoValidation
+} from "../../comments/routers/comment.input-dto.validation";
+import {
+    createCommentsByPostHandler
+} from "../../comments/routers/http-handlers/create-comments-post.handler";
 
 export const postsRouter = Router({});
 
@@ -30,4 +46,8 @@ postsRouter
 
     .put('/:id', superAdminGuardMiddleware, idValidation, postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
 
-    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, deletePost);
+    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, deletePost)
+
+    .get(`/:id${COMMENTS_PATH}`, idValidation, paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, getCommentsByPostHandler)
+
+    .post(`/:id${COMMENTS_PATH}`, accessTokenGuard, idValidation, commentInputDtoValidation,inputValidationResultMiddleware, createCommentsByPostHandler)
