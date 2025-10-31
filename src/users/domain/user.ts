@@ -20,7 +20,7 @@ export class User{
         this.email = dto.email;
         this.passwordHash = dto.passwordHash;
         this.createdAt = dto.createdAt;
-        this.emailConfirmation = {
+        this.emailConfirmation = dto.emailConfirmation ?? {
             expirationDate: new Date(),
             confirmationCode: randomUUID(),
             isConfirmed: false

@@ -97,17 +97,21 @@ export const authService = {
         password: string,
         email: string,
     ): Promise<Result<null>> {
-        const exists = await usersRepository.doesExistByLoginOrEmail(login, email)
-        if (exists)
+        const existingByLogin = await usersRepository.findByLoginOrEmail(login);
+        if (existingByLogin)
             return {
-            status: ResultStatus.BadRequest,
-            errorMessage: 'User already exists',
-            data: null,
-            extensions: [
-                { field: 'login', message: 'Login already taken' },
-                { field: 'email', message: 'Email already registered' },
-            ],
-        };
+                status: ResultStatus.BadRequest,
+                data: null,
+                extensions: [{ field: 'login', message: 'Login already taken' }],
+            };
+
+        const existingByEmail = await usersRepository.findByLoginOrEmail(email);
+        if (existingByEmail)
+            return {
+                status: ResultStatus.BadRequest,
+                data: null,
+                extensions: [{ field: 'email', message: 'Email already registered' }],
+            };
 
         //проверить существует ли уже юзер с таким логином или почтой и если да - не регистрировать
 
