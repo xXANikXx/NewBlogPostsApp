@@ -28,5 +28,5 @@ authRouter
 )
     .get("/me", accessTokenGuard, getAuthMeHandler)
     .post("/registration", userInputValidation, inputValidationResultMiddleware, postAuthRegistration)
-    .post("/registration-confirmation", userInputValidation, inputValidationResultMiddleware, postRegistrationConfirmHandler)
-    .post("/registration-email-resending", userInputValidation, inputValidationResultMiddleware, postRegistrationEmailResendingHandler)
+    .post("/registration-confirmation", inputValidationResultMiddleware, postRegistrationConfirmHandler)
+    .post("/registration-email-resending", inputValidationResultMiddleware, postRegistrationEmailResendingHandler)
