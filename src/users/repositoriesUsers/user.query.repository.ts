@@ -7,7 +7,7 @@ import {
     mapToUserListPaginatedOutput
 } from "../application/mappers/map-to-user-list-paginated-output";
 import {UserOutput} from "../application/output/user.output";
-import {ObjectId} from "mongodb";
+import {ObjectId, WithId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
@@ -18,6 +18,7 @@ import {
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
 import {User} from "../domain/user";
 import {UsersRepository} from "./users.repository";
+import {UserDomainDto} from "../domain/user-domain.dto";
 
 
 export class UserQueryRepository {
@@ -91,7 +92,13 @@ export class UserQueryRepository {
         return user ? User.reconstitute(user) : null;
     }
 
+    async findByLogin(login: string): Promise<WithId<UserDomainDto> | null> {
+        return userCollection.findOne({ login });
+    }
 
+    async findByEmail(email: string): Promise<WithId<UserDomainDto> | null> {
+        return userCollection.findOne({ email });
+    }
 }
 
 export const userQueryRepository = new UserQueryRepository();
