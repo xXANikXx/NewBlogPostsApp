@@ -26,18 +26,17 @@ export class UsersRepository {
 
     async save(user: User): Promise<User> {
         if (!user._id) {
-            // ... (логика INSERT)
+            // 1. ВСТАВКА (INSERT)
+            const insertResult = await userCollection.insertOne(user);
+            user._id = insertResult.insertedId; // Обновляем _id в объекте User
         } else {
-            // 1. Деструктуризация:
-            // Создаем переменную _id, которая содержит ID,
-            // и объект dtoToUpdate, который содержит ВСЕ ОСТАЛЬНЫЕ поля сущности User.
+            // 2. ОБНОВЛЕНИЕ (UPDATE)
+            // Исключаем _id из объекта для безопасного $set
             const { _id, ...dtoToUpdate } = user;
 
-            // 2. Обновление:
-            // Используем _id для поиска, и dtoToUpdate для $set.
             await userCollection.updateOne(
-                { _id },
-                { $set: dtoToUpdate } // dtoToUpdate — это объект, который мы ищем
+                { _id: user._id },
+                { $set: dtoToUpdate } // Обновляем все поля, кроме _id
             );
         }
         return user;

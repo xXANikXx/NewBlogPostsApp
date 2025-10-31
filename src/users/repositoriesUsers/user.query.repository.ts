@@ -2,12 +2,12 @@ import {UserListQuery} from "../application/query-handlers/user-list.query";
 import {
     UserListPaginatedOutput
 } from "../application/output/user-list-paginated.output";
-import {blogCollection, userCollection} from "../../db/mongo.db";
+import { userCollection} from "../../db/mongo.db";
 import {
     mapToUserListPaginatedOutput
 } from "../application/mappers/map-to-user-list-paginated-output";
 import {UserOutput} from "../application/output/user.output";
-import {ObjectId, WithId} from "mongodb";
+import {ObjectId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
@@ -17,8 +17,7 @@ import {
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
 import {User} from "../domain/user";
-import {UsersRepository} from "./users.repository";
-import {UserDomainDto} from "../domain/user-domain.dto";
+
 
 
 export class UserQueryRepository {
@@ -92,12 +91,15 @@ export class UserQueryRepository {
         return user ? User.reconstitute(user) : null;
     }
 
-    async findByLogin(login: string): Promise<WithId<UserDomainDto> | null> {
-        return userCollection.findOne({ login });
+    async findByLogin(login: string): Promise<User | null> { // Лучше возвращать доменную сущность
+        const found = await userCollection.findOne({ login });
+        // ✅ Если найден, преобразуем в доменную сущность (или DTO), иначе null
+        return found ? User.reconstitute(found) : null;
     }
 
-    async findByEmail(email: string): Promise<WithId<UserDomainDto> | null> {
-        return userCollection.findOne({ email });
+    async findByEmail(email: string): Promise<User | null> { // Лучше возвращать доменную сущность
+        const found = await userCollection.findOne({ email });
+        return found ? User.reconstitute(found) : null;
     }
 }
 
