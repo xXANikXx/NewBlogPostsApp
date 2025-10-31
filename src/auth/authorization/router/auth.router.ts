@@ -6,6 +6,16 @@ import {
 import {loginHandler} from "./http-handler/authHandler";
 import {accessTokenGuard} from "../../adapters/middlewares/access.token.guard";
 import {getAuthMeHandler} from "./http-handler/get - auth.handler";
+import {
+    userInputValidation
+} from "../../../users/routers/user.input-dto.validation";
+import {postAuthRegistration} from "./http-handler/post-auth-registration";
+import {
+    postRegistrationConfirmHandler
+} from "./http-handler/post-registration-confirm.handler";
+import {
+    postRegistrationEmailResendingHandler
+} from "./http-handler/post-registration-email-resending.handler";
 
 export const authRouter = Router();
 
@@ -17,4 +27,6 @@ authRouter
     loginHandler
 )
     .get("/me", accessTokenGuard, getAuthMeHandler)
-
+    .post("/registration", userInputValidation, inputValidationResultMiddleware, postAuthRegistration)
+    .post("/registration-confirmation", userInputValidation, inputValidationResultMiddleware, postRegistrationConfirmHandler)
+    .post("/registration-email-resending", userInputValidation, inputValidationResultMiddleware, postRegistrationEmailResendingHandler)

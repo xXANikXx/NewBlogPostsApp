@@ -16,6 +16,8 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
+import {User} from "../domain/user";
+import {UsersRepository} from "./users.repository";
 
 
 export class UserQueryRepository {
@@ -83,4 +85,13 @@ export class UserQueryRepository {
     return mapToUserOutput(user);
     }
 
+
+    async findByConfirmationCode(code: string): Promise<User | null> {
+        const user = await userCollection.findOne({ 'emailConfirmation.confirmationCode': code });
+        return user ? User.reconstitute(user) : null;
+    }
+
+
 }
+
+export const userQueryRepository = new UserQueryRepository();

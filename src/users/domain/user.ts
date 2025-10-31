@@ -1,6 +1,7 @@
 import {ObjectId, WithId} from "mongodb";
 import {ClassFieldsOnly} from "../../core/typesAny/fields-only";
 import {UserDomainDto} from "./user-domain.dto";
+import {randomUUID} from "crypto";
 
 export class User{
     _id?: ObjectId;
@@ -8,12 +9,22 @@ export class User{
     email: string;
     passwordHash: string;
     createdAt: string;
+    emailConfirmation: {
+        confirmationCode: string;
+        expirationDate: Date;
+        isConfirmed: boolean;
+    }
 
     private constructor(dto: ClassFieldsOnly<User>) {
         this.login = dto.login;
         this.email = dto.email;
         this.passwordHash = dto.passwordHash;
         this.createdAt = dto.createdAt;
+        this.emailConfirmation = {
+            expirationDate: new Date(),
+            confirmationCode: randomUUID(),
+            isConfirmed: false
+        }
 
         if(dto._id) {
             this._id = dto._id;
@@ -26,6 +37,7 @@ export class User{
             email: dto.email,
             passwordHash: dto.passwordHash,
             createdAt: dto.createdAt,
+            emailConfirmation: dto.emailConfirmation,
         })
     }
 

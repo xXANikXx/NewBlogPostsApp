@@ -41,6 +41,21 @@ export class UsersRepository {
         }
         return;
     }
+
+    async doesExistByLoginOrEmail(
+        login: string,
+        email: string
+    ): Promise<boolean> {
+        const user = await userCollection.findOne({
+            $or: [{ email }, { login }],
+        });
+        return !!user;
+    }
+
+    async create(user: User): Promise<string> {
+        const newUser = await userCollection.insertOne({...user});
+        return newUser.insertedId.toString();
+    }
 }
 
 export const usersRepository = new UsersRepository();

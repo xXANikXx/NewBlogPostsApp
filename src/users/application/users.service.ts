@@ -38,6 +38,11 @@ export class UsersService {
             email,
             passwordHash,
             createdAt: new Date().toISOString(),
+            emailConfirmation: {
+                confirmationCode: '',
+                isConfirmed: false,
+                expirationDate: new Date(),
+            },
         });
 
         const createdUser = await this.usersRepository.save(newUser);

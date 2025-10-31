@@ -8,6 +8,8 @@ export const resultCodeToHttpException = (resultCode: ResultStatus): number => {
             return HttpStatus.Ok;
 
         // Статусы клиента (4xx)
+        case ResultStatus.NoContent:
+            return HttpStatus.NoContent;
         case ResultStatus.BadRequest:
             return HttpStatus.BadRequest; // 400
         case ResultStatus.Unauthorized:
