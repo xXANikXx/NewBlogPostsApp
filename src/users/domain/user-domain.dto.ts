@@ -1,11 +1,9 @@
+import {EmailConfirmationType} from "./email-confirmation.type";
+
 export type UserDomainDto = {
     login: string;
     email: string;
     passwordHash: string;
     createdAt: string;
-    emailConfirmation: {
-        confirmationCode: string;
-        expirationDate: Date;
-        isConfirmed: boolean;
-    }
+    emailConfirmation: EmailConfirmationType;
 }

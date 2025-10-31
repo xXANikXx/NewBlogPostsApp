@@ -1,7 +1,7 @@
 import {ObjectId, WithId} from "mongodb";
 import {ClassFieldsOnly} from "../../core/typesAny/fields-only";
 import {UserDomainDto} from "./user-domain.dto";
-import {randomUUID} from "crypto";
+import {EmailConfirmationType} from "./email-confirmation.type";
 
 export class User{
     _id?: ObjectId;
@@ -9,22 +9,14 @@ export class User{
     email: string;
     passwordHash: string;
     createdAt: string;
-    emailConfirmation: {
-        confirmationCode: string;
-        expirationDate: Date;
-        isConfirmed: boolean;
-    }
+    emailConfirmation: EmailConfirmationType;
 
     private constructor(dto: ClassFieldsOnly<User>) {
         this.login = dto.login;
         this.email = dto.email;
         this.passwordHash = dto.passwordHash;
         this.createdAt = dto.createdAt;
-        this.emailConfirmation = dto.emailConfirmation ?? {
-            expirationDate: new Date(),
-            confirmationCode: randomUUID(),
-            isConfirmed: false
-        }
+        this.emailConfirmation = dto.emailConfirmation;
 
         if(dto._id) {
             this._id = dto._id;

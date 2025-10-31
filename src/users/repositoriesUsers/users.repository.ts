@@ -30,6 +30,12 @@ export class UsersRepository {
 
             user._id = insertResult.insertedId;
         }
+
+        await userCollection.updateOne(
+            { _id: user._id },
+            { $set: user }
+        );
+
         return user;
     }
 
@@ -52,10 +58,7 @@ export class UsersRepository {
         return !!user;
     }
 
-    async create(user: User): Promise<string> {
-        const newUser = await userCollection.insertOne({...user});
-        return newUser.insertedId.toString();
-    }
+
 }
 
 export const usersRepository = new UsersRepository();
