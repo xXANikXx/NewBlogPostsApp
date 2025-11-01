@@ -97,8 +97,14 @@ export const authService = {
         password: string,
         email: string,
     ): Promise<Result<null>> {
+
+        console.log('🧩 [registerUser] START with:', { login, email });
+
         const loginExists = await userQueryRepository.findByLogin(login);
         if (loginExists) {
+
+            console.log('⚠️ [registerUser] Login already taken:', login);
+
             return {
                 status: ResultStatus.BadRequest,
                 errorMessage: 'User already exists',
@@ -109,6 +115,9 @@ export const authService = {
 
         const emailExists = await userQueryRepository.findByEmail(email);
         if (emailExists) {
+
+            console.log('⚠️ [registerUser] Email already registered:', email);
+
             return {
                 status: ResultStatus.BadRequest,
                 errorMessage: 'User already exists',
@@ -122,6 +131,9 @@ export const authService = {
         //проверить существует ли уже юзер с таким логином или почтой и если да - не регистрировать
 
         const passwordHash = await bcryptService.generateHash(password)//создать хэш пароля
+
+        console.log('🔐 [registerUser] Password hashed successfully');
+
 
         const newUser = User.create({ // сформировать dto юзера
             login,
@@ -138,14 +150,30 @@ export const authService = {
             }
         });
 
-      await usersRepository.save(newUser);
+
+        console.log('🧠 [registerUser] newUser before save:', JSON.stringify(newUser, null, 2));
+
+
+        await usersRepository.save(newUser);
+
+
+        console.log('✅ [registerUser] user saved successfully with confirmationCode:',
+            newUser.emailConfirmation.confirmationCode
+        );
 
         //отправку сообщения лучше обернуть в try-catch, чтобы при ошибке(например отвалиться отправка) приложение не падало
         try {
+
+            console.log('📧 [registerUser] Sending email to:', newUser.email);
+
+
             await nodemailerService.sendEmail(//отправить сообщение на почту юзера с кодом подтверждения
                 newUser.email,
                 newUser.emailConfirmation.confirmationCode,
                 emailExamples.registrationEmail);
+
+            console.log('📨 [registerUser] Email sent successfully');
+
 
         } catch (e: unknown) {
             console.error('Send email error', e); //залогировать ошибку при отправке сообщения

@@ -13,7 +13,7 @@ export async function postAuthRegistration(req: Request<CreateUserCommand>, res:
     try {
         const { login, email, password } = req.body;
 
-        const result = await authService.registerUser(login, email, password);
+        const result = await authService.registerUser(login, password, email);
 
         if (result.status === ResultStatus.BadRequest) {
             return res.status(HttpStatus.BadRequest).send({
