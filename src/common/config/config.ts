@@ -10,8 +10,8 @@ export const appConfig = {
     AC_TIME: process.env.AC_TIME || '10',
     RT_SECRET: process.env.RT_SECRET || 'default_refresh_secret',
     DB_TYPE: process.env.DB_TYPE || 'test',
-    EMAIL: process.env.EMAIL || 'forstudy.25study@gmail.com',
-    EMAIL_PASS: process.env.EMAIL_PASS || 'SuperNik7!',
+    EMAIL: process.env.EMAIL || 'annikita.and@gmail.com',
+    EMAIL_PASS: process.env.EMAIL_PASS,
 }
 
 console.log('✅ Loaded appConfig:', appConfig);
