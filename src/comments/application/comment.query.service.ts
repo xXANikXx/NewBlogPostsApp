@@ -7,21 +7,17 @@ import {
 import {CommentOutput} from "./output/comment.output";
 import {
     PostsRepository,
-    postsRepository
 } from "../../posts/repositoriesPosts/posts.repository";
 import {
     CommentQueryRepository
 } from "../repositoriesComments/comment.query.repository";
+import {commentQueryRepository, postsRepository} from "../../composition.root";
 
 
-class CommentQueryService {
-    private commentQueryRepository: CommentQueryRepository;
-    private postsRepository: PostsRepository;
+export class CommentQueryService {
 
-    constructor() {
-        this.commentQueryRepository = new CommentQueryRepository();
-        this.postsRepository = new PostsRepository();
-
+    constructor(  private commentQueryRepository: CommentQueryRepository,
+    private postsRepository: PostsRepository) {
     }
 
     async findByIdOrFail(id: string): Promise<CommentOutput> {
@@ -36,5 +32,3 @@ class CommentQueryService {
         return this.commentQueryRepository.findCommentsByPost(queryDto, postId);
     }
 }
-
-export const commentQueryService = new CommentQueryService();

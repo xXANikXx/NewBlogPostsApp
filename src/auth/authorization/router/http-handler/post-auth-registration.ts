@@ -2,10 +2,10 @@ import {Request, Response} from 'express';
 import {
     CreateUserCommand
 } from "../../../../users/application/command-handlers/user-commands";
-import {authService} from "../../service/auth.service";
 import {ResultStatus} from "../../../../common/result/resultCode";
 import {HttpStatus} from "../../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../../core/errors/errors.handler";
+import {authService} from "../../../../composition.root";
 
 
 

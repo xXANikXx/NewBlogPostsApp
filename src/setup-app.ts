@@ -1,8 +1,9 @@
 import express, { Express } from "express";
+import cookieParser from "cookie-parser";
 import {
     AUTH_PATH,
     BLOGS_PATH, COMMENTS_PATH,
-    POSTS_PATH,
+    POSTS_PATH, SECURITY_PATH,
     TESTING_PATH,
     USERS_PATH
 } from "./core/paths/paths";
@@ -12,17 +13,22 @@ import {postsRouter} from "./posts/routers/posts.router";
 import {usersRouter} from "./users/routers/users.router";
 import {authRouter} from "./auth/authorization/router/auth.router";
 import {commentRouter} from "./comments/routers/comments.router";
+import {securityRouter} from "./auth/security/router/security.router";
 
 
 
 export const setupApp = async (app: Express) => {
     app.use(express.json());
 
+    app.use(cookieParser());
+
     app.get("/", (_req, res) => {
         res.status(200).send('Hello World!');
     });
 
     app.use(AUTH_PATH, authRouter);
+
+    app.use(SECURITY_PATH, securityRouter);
 
     app.use(BLOGS_PATH, blogsRouter);
 
@@ -33,6 +39,7 @@ export const setupApp = async (app: Express) => {
     app.use(COMMENTS_PATH, commentRouter);
 
     app.use(TESTING_PATH, testingRouter);
+
 
     return app;
 }

@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
 import { errorHandler } from "../../../core/errors/errors.handler";
-import {blogsService} from "../../application/blogs.service";
 import {
     CreateBlogRequestPayload
 } from "../request-payloads/create-blog-request.payload";
-import {blogsQueryService} from "../../application/blog.query.service";
+import {blogsQueryService, blogsService} from "../../../composition.root";
 
 export async function createBlogHandler(
     req: Request<{}, {}, CreateBlogRequestPayload>,

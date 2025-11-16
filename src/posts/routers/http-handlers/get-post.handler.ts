@@ -8,7 +8,7 @@ import { HttpStatus } from "../../../core/typesAny/http-statuses";
 import {
     PostListRequestPayload
 } from "../request-payloads/post-list-request.payload";
-import {postsQueryService} from "../../application/posts.query.service";
+import {postsQueryService} from "../../../composition.root";
 
 
 export async function getPostListHandler(

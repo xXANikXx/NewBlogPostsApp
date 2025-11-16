@@ -2,16 +2,13 @@ import { Request, Response } from "express";
 import { errorHandler } from "../../../core/errors/errors.handler";
 
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
-import {postsService} from "../../../posts/application/posts.service";
-import {
-    postsQueryService
-} from "../../../posts/application/posts.query.service";
 import {
     CreatePostByBlogRequestPayload
 } from "../../../posts/routers/request-payloads/create-post-blog-request.payload";
 import {
     CreatePostByBlogCommand
 } from "../../../posts/application/command-handlers/post-command";
+import {postsQueryService, postsService} from "../../../composition.root";
 
 
 export async function createPostByBlogHandler(

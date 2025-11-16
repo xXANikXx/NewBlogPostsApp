@@ -8,12 +8,10 @@ import {PostsRepository} from "../../posts/repositoriesPosts/posts.repository";
 
 
 export class BlogsService {
-    private blogsRepository: BlogsRepository;
-    private postsRepository: PostsRepository;
 
-    constructor() {
-        this.blogsRepository = new BlogsRepository()
-        this.postsRepository = new PostsRepository();
+    constructor(private blogsRepository: BlogsRepository,
+    private postsRepository: PostsRepository) {
+
     }
 
     async create(command: CreateBlogCommand): Promise<string> {
@@ -46,5 +44,3 @@ export class BlogsService {
         return;
     }
 }
-
-export const blogsService = new BlogsService();

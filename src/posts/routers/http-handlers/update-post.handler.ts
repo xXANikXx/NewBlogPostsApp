@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
 import {UpdatePostRequestPayload} from "../request-payloads/update-post-request.payload";
 import {errorHandler} from "../../../core/errors/errors.handler";
-import {postsService} from "../../application/posts.service";
+import {postsService} from "../../../composition.root";
 
 export async function updatePostHandler(
     req: Request<{ id: string }, {}, UpdatePostRequestPayload>,

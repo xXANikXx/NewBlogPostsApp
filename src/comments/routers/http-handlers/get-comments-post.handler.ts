@@ -4,7 +4,7 @@ import {
     CommentListRequestPayload
 } from "../request-payloads/comment-list-request.payload";
 import {errorHandler} from "../../../core/errors/errors.handler";
-import {commentQueryService} from "../../application/comment.query.service";
+import {commentQueryService} from "../../../composition.root";
 
 
 export async function getCommentsByPostHandler(

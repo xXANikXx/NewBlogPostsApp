@@ -1,9 +1,8 @@
 import {Request, Response} from "express";
 import {CreateUserRequestPayload} from "../request-payloads/create-user-request.payload";
-import {usersService} from "../../application/users.service";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
-import {userQueryService} from "../../application/user.query.service";
 import {errorHandler} from "../../../core/errors/errors.handler";
+import {userQueryService, usersService} from "../../../composition.root";
 
 export async function createUserHandler(
     req: Request<{}, {}, CreateUserRequestPayload>,

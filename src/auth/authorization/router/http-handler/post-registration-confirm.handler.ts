@@ -1,8 +1,8 @@
 import {Request, Response} from 'express';
 import {ResultStatus} from "../../../../common/result/resultCode";
-import {authService} from "../../service/auth.service";
 import {HttpStatus} from "../../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../../core/errors/errors.handler";
+import {authService} from "../../../../composition.root";
 
 
 export async function postRegistrationConfirmHandler(req: Request, res: Response) {

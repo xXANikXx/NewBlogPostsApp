@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../core/errors/errors.handler";
-import {blogsService} from "../../application/blogs.service";
+import {blogsService} from "../../../composition.root";
 
 
 export async function deleteBlogHandler(req: Request<{id: string}>,

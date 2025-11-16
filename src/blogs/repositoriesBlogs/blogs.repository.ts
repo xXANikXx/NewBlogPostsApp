@@ -53,5 +53,3 @@ export class BlogsRepository {
     }
 
 }
-
-export const blogsRepository = new BlogsRepository();

@@ -33,6 +33,6 @@ export const superAdminGuardMiddleware = (
         return;
     }
 
-    next(); // Успешная авторизация, продолжаем
+    next();
 
 }

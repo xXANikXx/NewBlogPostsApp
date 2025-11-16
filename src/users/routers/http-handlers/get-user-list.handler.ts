@@ -2,12 +2,12 @@ import {Request, Response} from "express";
 import {
     setDefaultSortAndPaginationIfNotExist
 } from "../../../core/helpers/set-default-sort-and-pagination";
-import {userQueryService} from "../../application/user.query.service";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../core/errors/errors.handler";
 import {
     UserListRequestPayload
 } from "../request-payloads/user-list-request.payload";
+import {userQueryService} from "../../../composition.root";
 
 
 export async function getUserHandler(

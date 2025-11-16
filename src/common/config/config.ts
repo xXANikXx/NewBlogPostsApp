@@ -9,6 +9,7 @@ export const appConfig = {
     AC_SECRET: process.env.AC_SECRET || 'default_secret_key',
     AC_TIME: process.env.AC_TIME || '10',
     RT_SECRET: process.env.RT_SECRET || 'default_refresh_secret',
+    RT_TIME: process.env.RT_TIME || '20',
     DB_TYPE: process.env.DB_TYPE || 'test',
     EMAIL: process.env.EMAIL || 'annikita.and@gmail.com',
     EMAIL_PASS: process.env.EMAIL_PASS,

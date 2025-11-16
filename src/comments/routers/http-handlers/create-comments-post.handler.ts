@@ -5,10 +5,9 @@ import {Request, Response} from "express";
 import {
     CreateCommentsByPostCommand
 } from "../../application/command-handlers/comment-command";
-import {commentsService} from "../../application/comments.service";
-import {commentQueryService} from "../../application/comment.query.service";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../core/errors/errors.handler";
+import {commentQueryService, commentsService} from "../../../composition.root";
 
 
 export async function createCommentsByPostHandler(

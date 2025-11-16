@@ -23,6 +23,7 @@ import {
 
 
 export class PostsQueryRepository {
+
     async findMany(
         queryDto: PostListRequestPayload,
     ): Promise<PostListPaginatedOutput> {

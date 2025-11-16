@@ -1,7 +1,7 @@
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../core/errors/errors.handler";
-import {commentsService} from "../../application/comments.service";
 import {Request, Response} from "express";
+import {commentsService} from "../../../composition.root";
 
 export async function deleteCommentHandler(
     req: Request<{id: string}>,

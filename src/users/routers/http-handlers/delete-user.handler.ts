@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
-import {usersService} from "../../application/users.service";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {errorHandler} from "../../../core/errors/errors.handler";
+import {usersService} from "../../../composition.root";
 
 
 export async function deleteUserHandler(req: Request<{id:string}>,

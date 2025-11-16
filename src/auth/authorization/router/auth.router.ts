@@ -14,18 +14,28 @@ import {
     postRegistrationEmailResendingHandler
 } from "./http-handler/post-registration-email-resending.handler";
 import {authInputVal} from "./auth.input.validation";
+import {refreshTokenHandler} from "./http-handler/post-refresh-token";
+import {
+    refreshTokenGuard
+} from "../../adapters/middlewares/refresh-token.guard";
+import {logoutHandler} from "./http-handler/post-logout";
+import {
+    rateLimitMiddleware
+} from "../../adapters/middlewares/rate-limit.middleware";
 
 
 export const authRouter = Router();
 
-console.log('⚡️ Auth Router Initialized! Testing for /registration path...');
 
 authRouter
-    .post("/login", authInputValidation, inputValidationResultMiddleware, loginHandler)
+    .post("/login", authInputValidation,rateLimitMiddleware, inputValidationResultMiddleware ,loginHandler)
 
-    .post("/TEST-REGISTRATION-404", (req, res) => res.send('TEST OK'))
+    .post('/refresh-token', refreshTokenGuard, refreshTokenHandler)
+    .post('/logout', refreshTokenGuard, logoutHandler)
 
-    .post("/registration", authInputVal, inputValidationResultMiddleware, postAuthRegistration)
-    .post("/registration-confirmation", inputValidationResultMiddleware, postRegistrationConfirmHandler)
-    .post("/registration-email-resending", inputValidationResultMiddleware, postRegistrationEmailResendingHandler)
-    .get("/me", accessTokenGuard, getAuthMeHandler)
+    .post("/registration", rateLimitMiddleware,authInputVal,inputValidationResultMiddleware, postAuthRegistration)
+    .post("/registration-confirmation",rateLimitMiddleware, inputValidationResultMiddleware, postRegistrationConfirmHandler)
+    .post("/registration-email-resending", rateLimitMiddleware,inputValidationResultMiddleware, postRegistrationEmailResendingHandler)
+    .get("/me", rateLimitMiddleware,accessTokenGuard, getAuthMeHandler)
+
+

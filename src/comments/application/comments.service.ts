@@ -4,19 +4,16 @@ import {
 } from "./command-handlers/comment-command";
 import {
     PostsRepository,
-    postsRepository
 } from "../../posts/repositoriesPosts/posts.repository";
 import {Comment} from "../domain/comment";
 import {CommentsRepository} from "../repositoriesComments/comment.repository";
 import {ForbiddenError} from "../../core/errors/forbidden.Error";
-
 export class CommentsService {
-    private commentsRepository: CommentsRepository;
-    private postsRepository: PostsRepository;
 
-    constructor() {
-        this.commentsRepository = new CommentsRepository();
-        this.postsRepository = new PostsRepository();
+
+    constructor( private commentsRepository: CommentsRepository,
+    private postsRepository: PostsRepository) {
+
     }
 
 
@@ -64,5 +61,3 @@ export class CommentsService {
         return createdCommentsByBlog._id!.toString();
     }
 }
-
-export const commentsService = new CommentsService();

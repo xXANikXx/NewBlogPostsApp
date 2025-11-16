@@ -1,7 +1,6 @@
 import {Request, Response} from 'express';
-import {
-    usersRepository
-} from "../../../../users/repositoriesUsers/users.repository";
+import {usersRepository} from "../../../../composition.root";
+
 
 
 export async function getAuthMeHandler(req: Request, res: Response) {

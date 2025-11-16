@@ -54,4 +54,3 @@ export class PostsRepository{
 
 }
 
-export const postsRepository = new PostsRepository();

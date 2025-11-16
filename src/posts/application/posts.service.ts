@@ -6,15 +6,14 @@ import {
     UpdatePostCommand
 } from "./command-handlers/post-command";
 import {PostsRepository} from "../repositoriesPosts/posts.repository";
+import {blogsRepository, postsRepository} from "../../composition.root";
 
 
 
-class PostsService {
-    private postsRepository: PostsRepository;
-    private blogsRepository: BlogsRepository;
-    constructor() {
-        this.blogsRepository = new BlogsRepository();
-        this.postsRepository = new PostsRepository();
+export class PostsService {
+
+    constructor(private postsRepository: PostsRepository,
+    private blogsRepository: BlogsRepository) {
     }
 
     async create(dto: CreatePostCommand): Promise<string> {
@@ -68,5 +67,3 @@ class PostsService {
         return;
     }
 }
-
-export const postsService = new PostsService()

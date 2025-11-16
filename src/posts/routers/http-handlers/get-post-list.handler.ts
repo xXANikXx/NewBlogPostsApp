@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { errorHandler } from "../../../core/errors/errors.handler";
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
-import {postsQueryService} from "../../application/posts.query.service";
+import {postsQueryService} from "../../../composition.root";
 
 export async function getPostHandler(req: Request, res: Response) {
     try {

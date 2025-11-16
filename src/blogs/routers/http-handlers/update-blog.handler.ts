@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {UpdateBlogRequestPayload} from "../request-payloads/update-blog-request.payload";
-import {blogsService} from '../../application/blogs.service';
 import {errorHandler} from "../../../core/errors/errors.handler";
+import {blogsService} from "../../../composition.root";
 
 export async function updateBlogHandler(
     req: Request<{ id: string }, {}, UpdateBlogRequestPayload>,

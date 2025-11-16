@@ -8,7 +8,7 @@ import {
 import {
     setDefaultSortAndPaginationIfNotExist
 } from "../../../core/helpers/set-default-sort-and-pagination";
-import {blogsQueryService} from "../../application/blog.query.service";
+import {blogsQueryService} from "../../../composition.root";
 
 
 export async function getBlogListHandler(

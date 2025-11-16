@@ -1,24 +1,43 @@
-import {bcryptService} from "../../adapters/crypto/password-hasher";
-import {jwtService} from "../../adapters/jwt.service";
 import {UserDomainDto} from "../../../users/domain/user-domain.dto";
 import {Result} from "../../../common/result/result.type";
 import {ResultStatus} from "../../../common/result/resultCode";
 import {WithId} from "mongodb";
-import {
-    usersRepository
-} from "../../../users/repositoriesUsers/users.repository";
+
 import {User} from "../../../users/domain/user";
-import {nodemailerService} from "../../adapters/nodemailer.service";
 import {emailExamples} from "../../adapters/emailExamples";
 import {randomUUID} from "crypto";
 import {add} from 'date-fns/add';
-import {userQueryRepository} from "../../../users/repositoriesUsers/user.query.repository";
+import {addSeconds} from "date-fns/addSeconds";
+import {appConfig} from "../../../common/config/config";
 
-export const authService = {
+import {NodemailerService} from "../../adapters/nodemailer.service";
+import {JwtService} from "../../adapters/jwt.service";
+import {SessionRepository} from "../repository/session.repository";
+import {
+    UsersRepository
+} from "../../../users/repositoriesUsers/users.repository";
+import {
+    UserQueryRepository
+} from "../../../users/repositoriesUsers/user.query.repository";
+import {BcryptService} from "../../adapters/crypto/password-hasher";
+
+
+export class AuthService {
+
+
+    constructor(private nodemailerService: NodemailerService,
+                private jwtService: JwtService,
+                private bcryptService: BcryptService,
+                private sessionRepository: SessionRepository,
+                private usersRepository: UsersRepository,
+                private userQueryRepository: UserQueryRepository) {}
+
     async loginUser(
         loginOrEmail: string,
         password: string,
-    ): Promise<Result<{ accessToken: string } | null>> {
+        ip: string,
+        title: string,
+    ): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
         try {
             console.log('[authService] loginUser called with:', { loginOrEmail });
 
@@ -35,26 +54,44 @@ export const authService = {
                 };
             }
 
-            console.log('LOG 3: Creating token for ID/Login:', result.data!._id, result.data!.login);
+            const userId = result.data!._id.toString();
 
-            // ⚠️ Вот здесь, если что-то не так с секретом или временем, будет падать jwt.sign()
-            const accessToken = await jwtService.createToken(
-                result.data!._id.toString(),
-                result.data!.login
+            const deviceId = randomUUID();
+
+            const accessToken = await this.jwtService.createToken(
+                userId,
             );
 
-            console.log('LOG 4: Token created:', accessToken);
+            const refreshToken = await this.jwtService.createRefreshToken(
+                userId, deviceId
+            );
+
+            const rtExpirationDate = addSeconds(new Date(), Number(appConfig.RT_TIME));
+
+            const tokenCreationTimeInSeconds = Math.floor(Date.now() / 1000);
+            const correctIatDate = new Date(tokenCreationTimeInSeconds * 1000);
+
+            await this.sessionRepository.save({
+                userId,
+                expiresAt: rtExpirationDate,
+                    iat: correctIatDate,
+                deviceId,
+                ip,
+                title,
+            });
 
             return {
                 status: ResultStatus.Success,
-                data: { accessToken },
+                data: { accessToken, refreshToken },
                 extensions: [],
             };
+
+
         } catch (e) {
             console.log('ERROR in loginUser:', e);
             throw e; // важно — не проглатываем ошибку, чтобы её поймал loginHandler
         }
-    },
+    }
 
     async checkUserCredentials(
         loginOrEmail: string,
@@ -62,7 +99,7 @@ export const authService = {
     ): Promise<Result<WithId<UserDomainDto> | null>> {
         console.log('[authService] checkUserCredentials called');
 
-        const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
+        const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
         console.log('LOG 1: User found?', !!user);
         console.log('LOG 1.1: Password Hash:', user ? user.passwordHash : 'N/A');
 
@@ -74,7 +111,7 @@ export const authService = {
                 extensions: [{ field: 'loginOrEmail', message: 'Not Found' }],
             };
 
-        const isPassCorrect = await bcryptService.checkPassword(password, user.passwordHash);
+        const isPassCorrect = await this.bcryptService.checkPassword(password, user.passwordHash);
         console.log('LOG 2: Password correct?', isPassCorrect);
 
         if (!isPassCorrect)
@@ -90,7 +127,76 @@ export const authService = {
             data: user,
             extensions: [],
         };
-    },
+    }
+
+
+    async refreshToken(oldRefreshToken: string): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
+        console.log('[authService] refreshTokens called with old RT:', oldRefreshToken.substring(0, 10) + '...');
+
+        const payload = await this.jwtService.verifyRefreshToken(oldRefreshToken);
+
+        if (!payload) {
+            console.log('RT verification failed (invalid signature or expired)');
+            return {
+                status: ResultStatus.Unauthorized,
+                errorMessage: 'Refresh token is expired or invalid',
+                extensions: [],
+                data: null,
+            };
+        }
+
+        const { userId, deviceId } = payload;
+
+        const activeSession = await this.sessionRepository.findSession(userId, deviceId);
+
+        if (!activeSession) {
+            console.log('RT not found in Whitelist (session already revoked or not exist)');
+            return {
+                status: ResultStatus.Unauthorized,
+                errorMessage: 'Refresh token session not found',
+                extensions: [],
+                data: null,
+            };
+        }
+
+        await this.sessionRepository.deleteByDeviceId(deviceId, userId);
+        console.log('Old RT successfully revoked (deleted from Whitelist)');
+
+
+        const newAccessToken = await this.jwtService.createToken(userId);
+        const newRefreshToken = await this.jwtService.createRefreshToken(userId, deviceId);
+
+        const rtExpirationDate = addSeconds(new Date(), Number(appConfig.RT_TIME));
+        const tokenCreationTimeInSeconds = Math.floor(Date.now() / 1000);
+        const correctIatDate = new Date(tokenCreationTimeInSeconds * 1000);
+
+        console.log('--- [AUTH SERVICE LOG] ---');
+        console.log(`RT Secret used: ${appConfig.RT_SECRET.substring(0, 5)}...`); // Проверяем секрет
+        console.log(`Generated deviceId: ${deviceId}`);
+        console.log(`iat being saved (Date): ${new Date()}`); // Проверяем, что сохраняется Date
+        console.log('--------------------------');
+
+
+        await this.sessionRepository.save({
+            userId: userId,
+            expiresAt: rtExpirationDate,
+            iat: correctIatDate,
+            deviceId: deviceId,
+            ip: activeSession.ip,
+            title: activeSession.title,
+        });
+
+        console.log('New RT saved to Whitelist. Tokens ready for response.');
+
+        return {
+            status: ResultStatus.Success,
+            data: {
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            },
+            extensions: [],
+        };
+    }
 
     async registerUser(
         login: string,
@@ -98,12 +204,12 @@ export const authService = {
         email: string,
     ): Promise<Result<null>> {
 
-        console.log('🧩 [registerUser] START with:', { login, email });
+        console.log(' [registerUser] START with:', { login, email });
 
-        const loginExists = await userQueryRepository.findByLogin(login);
+        const loginExists = await this.userQueryRepository.findByLogin(login);
         if (loginExists) {
 
-            console.log('⚠️ [registerUser] Login already taken:', login);
+            console.log(' [registerUser] Login already taken:', login);
 
             return {
                 status: ResultStatus.BadRequest,
@@ -113,10 +219,10 @@ export const authService = {
             };
         }
 
-        const emailExists = await userQueryRepository.findByEmail(email);
+        const emailExists = await this.userQueryRepository.findByEmail(email);
         if (emailExists) {
 
-            console.log('⚠️ [registerUser] Email already registered:', email);
+            console.log('[registerUser] Email already registered:', email);
 
             return {
                 status: ResultStatus.BadRequest,
@@ -130,9 +236,9 @@ export const authService = {
 
         //проверить существует ли уже юзер с таким логином или почтой и если да - не регистрировать
 
-        const passwordHash = await bcryptService.generateHash(password)//создать хэш пароля
+        const passwordHash = await this.bcryptService.generateHash(password)//создать хэш пароля
 
-        console.log('🔐 [registerUser] Password hashed successfully');
+        console.log('[registerUser] Password hashed successfully');
 
 
         const newUser = User.create({ // сформировать dto юзера
@@ -151,28 +257,28 @@ export const authService = {
         });
 
 
-        console.log('🧠 [registerUser] newUser before save:', JSON.stringify(newUser, null, 2));
+        console.log('[registerUser] newUser before save:', JSON.stringify(newUser, null, 2));
 
 
-        await usersRepository.save(newUser);
+        await this.usersRepository.save(newUser);
 
 
-        console.log('✅ [registerUser] user saved successfully with confirmationCode:',
+        console.log('[registerUser] user saved successfully with confirmationCode:',
             newUser.emailConfirmation.confirmationCode
         );
 
         //отправку сообщения лучше обернуть в try-catch, чтобы при ошибке(например отвалиться отправка) приложение не падало
         try {
 
-            console.log('📧 [registerUser] Sending email to:', newUser.email);
+            console.log('[registerUser] Sending email to:', newUser.email);
 
 
-            await nodemailerService.sendEmail(//отправить сообщение на почту юзера с кодом подтверждения
+            await this.nodemailerService.sendEmail(//отправить сообщение на почту юзера с кодом подтверждения
                 newUser.email,
                 newUser.emailConfirmation.confirmationCode,
                 emailExamples.registrationEmail);
 
-            console.log('📨 [registerUser] Email sent successfully');
+            console.log('[registerUser] Email sent successfully');
 
 
         } catch (e: unknown) {
@@ -183,7 +289,7 @@ export const authService = {
             data: null,
             extensions: [],
         };
-    },
+    }
 
     async confirmEmail(code: string): Promise<Result<any>> {
 
@@ -200,7 +306,7 @@ export const authService = {
             };
         }
 
-        const user = await userQueryRepository.findByConfirmationCode(code);
+        const user = await this.userQueryRepository.findByConfirmationCode(code);
         if (!user) {
             return {
                 status: ResultStatus.BadRequest,
@@ -220,17 +326,17 @@ export const authService = {
         }
 
         user.emailConfirmation.isConfirmed = true;
-        await usersRepository.save(user);
+        await this.usersRepository.save(user);
 
         return {
             status: ResultStatus.Success,
             data: null,
             extensions: [],
         };
-    },
+    }
 
     async resendEmail(email: string): Promise<Result<any>> {
-        const user = await usersRepository.findByLoginOrEmail(email);
+        const user = await this.usersRepository.findByLoginOrEmail(email);
 
         if (!user) {
             return {
@@ -256,10 +362,10 @@ export const authService = {
         user.emailConfirmation.confirmationCode = randomUUID();
         user.emailConfirmation.expirationDate = add(new Date(), { hours: 1, minutes: 30 });
 
-        await usersRepository.save(user);
+        await this.usersRepository.save(user);
 
         try {
-            await nodemailerService.sendEmail(
+            await this.nodemailerService.sendEmail(
                 user.email,
                 user.emailConfirmation.confirmationCode,
                 emailExamples.registrationEmail
@@ -274,4 +380,21 @@ export const authService = {
             extensions: [],
         };
     }
-};
+
+    async logout(userId: string, deviceId: string): Promise<Result<null>> {
+        const isDeleted = await this.sessionRepository.deleteByDeviceId(deviceId, userId);
+
+        if (isDeleted) {
+            console.log('Session successfully revoked/deleted from Whitelist.');
+        } else {
+            console.log('RT was not found in Whitelist (already expired or revoked).');
+        }
+
+        return {
+            status: ResultStatus.Success,
+            data: null,
+            extensions: [],
+        };
+    }
+}
+

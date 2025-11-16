@@ -4,12 +4,12 @@ import {
     UserListRequestPayload
 } from "../routers/request-payloads/user-list-request.payload";
 import {UserQueryRepository} from "../repositoriesUsers/user.query.repository";
-import {BlogOutput} from "../../blogs/application/output/blog.output";
 
-class UserQueryService {
-    private userQueryRepository: UserQueryRepository;
-    constructor() {
-        this.userQueryRepository = new UserQueryRepository();
+export class UserQueryService {
+
+
+    constructor(    private userQueryRepository: UserQueryRepository
+) {
     }
         async findMany(queryDto: UserListRequestPayload
         ): Promise<UserListPaginatedOutput> {
@@ -20,5 +20,3 @@ class UserQueryService {
         return this.userQueryRepository.findByIdOrFail(id);
     }
     }
-
-    export const userQueryService = new UserQueryService();

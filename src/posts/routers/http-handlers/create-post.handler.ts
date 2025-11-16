@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import { HttpStatus } from "../../../core/typesAny/http-statuses";
 import { CreatePostRequestPayload } from "../request-payloads/create-post-request.payload";
 import { errorHandler } from "../../../core/errors/errors.handler";
-import {postsQueryService} from "../../application/posts.query.service";
-import {postsService} from "../../application/posts.service";
+import {postsQueryService, postsService} from "../../../composition.root";
 
 
 export async function createPostHandler(
