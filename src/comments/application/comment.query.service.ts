@@ -11,17 +11,35 @@ import {
 import {
     CommentQueryRepository
 } from "../repositoriesComments/comment.query.repository";
-import {commentQueryRepository, postsRepository} from "../../composition.root";
+import {inject, injectable} from "inversify";
+import {LikeRepository} from "../../likes/repositories/like-repository";
+import {EntityType, LikeStatus} from "../../likes/domain/like-entity";
 
-
+@injectable()
 export class CommentQueryService {
 
-    constructor(  private commentQueryRepository: CommentQueryRepository,
-    private postsRepository: PostsRepository) {
+    constructor( @inject(CommentQueryRepository) private commentQueryRepository: CommentQueryRepository,
+   @inject(PostsRepository) private postsRepository: PostsRepository,
+                 @inject(LikeRepository) private likeRepository: LikeRepository) {
     }
 
-    async findByIdOrFail(id: string): Promise<CommentOutput> {
-        return this.commentQueryRepository.findByIdOrFail(id);
+    async findByIdOrFail(id: string, userId?: string): Promise<CommentOutput> {
+        const comment = await this.commentQueryRepository.findByIdOrFail(id);
+
+        const likesCount = await this.likeRepository.countLikes(comment.id, EntityType.Comment);
+        const dislikesCount = await this.likeRepository.countDislikes(comment.id, EntityType.Comment);
+        const myStatus = userId
+            ? await this.likeRepository.getMyStatus(userId, comment.id, EntityType.Comment)
+            : LikeStatus.None;
+
+        return {
+            ...comment,
+            likesInfo: {
+                likesCount,
+                dislikesCount,
+                myStatus
+            }
+        };
     }
 
     async findCommentsByPost(

@@ -18,11 +18,13 @@ const express_1 = __importDefault(require("express"));
 const http_statuses_1 = require("../../../src/core/typesAny/http-statuses");
 const clear_db_1 = require("../../utils/clear-db");
 const mongo_db_1 = require("../../../src/db/mongo.db");
+const mongoose_1 = __importDefault(require("mongoose"));
+const settings_1 = require("../../../src/core/settings/settings");
 describe('Authorization jwt', () => {
     const app = (0, express_1.default)();
     (0, setup_app_1.setupApp)(app);
     beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
-        yield (0, mongo_db_1.runDB)('mongodb+srv://nik:nik@lesson.mezyenu.mongodb.net/blogspostsapp?retryWrites=true&w=majority');
+        yield mongoose_1.default.connect(settings_1.SETTINGS.MONGO_URL);
         yield (0, clear_db_1.clearDb)(app);
     }));
     afterAll(() => __awaiter(void 0, void 0, void 0, function* () {

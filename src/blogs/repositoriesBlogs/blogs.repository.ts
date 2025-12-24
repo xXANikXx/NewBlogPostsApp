@@ -1,48 +1,23 @@
-import { ObjectId, WithId } from "mongodb";
-import { blogCollection } from "../../db/mongo.db";
-import { Blog } from "../domain/blog";
 import { RepositoryNotFoundError } from "../../core/errors/repository-not-found.error";
+import {BlogDocument, BlogModel} from "../domain/blog.entity";
 
 
 export class BlogsRepository {
-    async findByIdOrFail(id: string): Promise<WithId<Blog>> {
-        const res = await blogCollection.findOne({_id: new ObjectId(id)});
-        if (!res) {
+
+    async findByIdOrFail(id: string): Promise<BlogDocument> {
+        const blog = await BlogModel.findById(id);
+        if (!blog) {
             throw new RepositoryNotFoundError('Blog not exist');
         }
-        return Blog.reconstitute(res);
+        return blog;
     }
 
-    async save(blog: Blog): Promise<Blog> {
-        if (!blog._id) {
-            const insertResult = await blogCollection.insertOne(blog);
-
-            blog._id = insertResult.insertedId;
-
-            return blog;
-        } else {
-            const {_id, ...dtoToUpdate} = blog;
-
-            const updateResult = await blogCollection.updateOne(
-                {
-                    _id
-                },
-                {
-                    $set: {
-                        ...dtoToUpdate,
-                    },
-                },
-            );
-
-            if (updateResult.matchedCount < 1) {
-                throw new RepositoryNotFoundError('Blog not exist');
-            }
-            return blog;
+    async save(blog: BlogDocument): Promise<BlogDocument> {
+            return await blog.save();
         }
-    }
 
     async delete(id: string): Promise<void> {
-        const deleteResult = await blogCollection.deleteOne({_id: new ObjectId(id)});
+        const deleteResult = await BlogModel.deleteOne({_id: id});
 
 
         if (deleteResult.deletedCount < 1) {

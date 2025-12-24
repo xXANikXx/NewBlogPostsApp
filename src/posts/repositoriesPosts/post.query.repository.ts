@@ -4,9 +4,7 @@ import {
 import {
     mapToPostListPaginatedOutput
 } from "../application/mappers/map-to-post-list-paginated-output";
-import {postCollection} from "../../db/mongo.db";
 import {PostOutput} from "../application/output/post.output";
-import {ObjectId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
@@ -20,8 +18,10 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
+import {injectable} from "inversify";
+import {PostModel} from "../domain/posts.entity";
 
-
+@injectable()
 export class PostsQueryRepository {
 
     async findMany(
@@ -37,13 +37,12 @@ export class PostsQueryRepository {
 
 
         const [items, totalCount] = await Promise.all([
-            postCollection
+            PostModel
                 .find(filter)
                 .sort({[sortByField]: sortDir })
                 .skip(skip)
-                .limit(pageSizeNum)
-                .toArray(),
-            postCollection.countDocuments(filter),
+                .limit(pageSizeNum),
+            PostModel.countDocuments(filter),
         ]);
         return mapToPostListPaginatedOutput(items, {
             pageNumber: pageNumberNum,
@@ -66,13 +65,12 @@ export class PostsQueryRepository {
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const [items, totalCount] = await Promise.all([
-            postCollection
+            PostModel
                 .find(filter)
                 .sort({ [sortBy]: sortDirection })
                 .skip(skip)
-                .limit(pageSizeNum)
-                .toArray(),
-            postCollection.countDocuments(filter),
+                .limit(pageSizeNum),
+            PostModel.countDocuments(filter),
         ]);
         return mapToPostListPaginatedOutput(items, {
             pageNumber: pageNumberNum,
@@ -82,7 +80,7 @@ export class PostsQueryRepository {
     }
 
         async findByIdOrFail(id:string): Promise<PostOutput>{
-        const post = await postCollection.findOne({_id: new ObjectId(id)});
+        const post = await PostModel.findById(id);
 
         if(!post) {
             throw new RepositoryNotFoundError('Post not exist');

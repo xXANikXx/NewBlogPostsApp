@@ -1,10 +1,9 @@
-import {WithId} from "mongodb";
-import {User} from "../../domain/user";
 import {UserListPaginatedOutput} from "../output/user-list-paginated.output";
+import {UserDocument} from "../../domain/user.entity";
 
 
 export function mapToUserListPaginatedOutput(
-    user: WithId<User>[],
+    user: UserDocument[],
 meta: { pageNumber: number; pageSize: number; totalCount: number }
 ): UserListPaginatedOutput {
 

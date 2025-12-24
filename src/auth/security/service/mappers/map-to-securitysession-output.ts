@@ -1,4 +1,4 @@
-import {SessionDocument} from "../../../authorization/types/session";
+import {SessionDocument} from "../../../authorization/domain/session.entity";
 import {DeviceViewModel} from "../../types/devices-view-model";
 
 export const mapSessionToDeviceViewModel = (session: SessionDocument): DeviceViewModel => {

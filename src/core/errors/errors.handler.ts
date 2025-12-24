@@ -5,6 +5,7 @@ import { DomainError } from "./domain.error";
 import {createErrorMessages} from "./create-error-messages";
 import {LoginEmailError} from "./login-email.error";
 import {ForbiddenError} from "./forbidden.Error";
+import {BadRequestError} from "./badReq";
 
 
 export function errorHandler(error: unknown, res: Response): void {
@@ -20,6 +21,16 @@ export function errorHandler(error: unknown, res: Response): void {
                     message: error.message,
                     field: 'id',
                 },
+            ],
+        });
+        return;
+    }
+
+    if (error instanceof BadRequestError) {
+        res.status(HttpStatus.BadRequest).send({
+            errorsMessages: [
+                { message: error.message,
+                    field: error.field },
             ],
         });
         return;

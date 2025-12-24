@@ -1,31 +1,38 @@
-import {sessionCollection} from "../../../db/mongo.db";
-import {SessionDocument, SessionDto} from "../types/session";
+import {
+    SessionDocument,
+    SessionDto,
+    SessionModel
+} from "../domain/session.entity";
+import {injectable} from "inversify";
 
 
-
+@injectable()
 export class SessionRepository {
-    async save(session: SessionDto): Promise<void> {
-        await sessionCollection.insertOne(session);
+    async save(session: SessionDocument) {
+        await session.save();
+    }
 
-        console.log(`Saved new RT for user: ${session.userId}, device: ${session.deviceId}`);
+    async create(dto: SessionDto): Promise<SessionDocument> {
+        const session = new SessionModel(dto);
+        await session.save();
+        return session;
     }
 
     async findSession(userId: string, deviceId: string): Promise<SessionDocument | null> {
-        return sessionCollection.findOne({
+        return SessionModel.findOne({
             userId: userId,
             deviceId: deviceId
         });
     }
 
-    async findByDeviceId(deviceId: string): Promise<SessionDto | null> {
-        return await sessionCollection.findOne({ deviceId });
+    async findByDeviceId(deviceId: string): Promise<SessionDocument | null> {
+        return await SessionModel.findOne({ deviceId });
     }
 
 
     async findAllByUserId(userId: string): Promise<SessionDocument[]> {
-        return sessionCollection
+        return SessionModel
             .find({userId: userId})
-            .toArray();
     }
 
     async deleteAllExcept(userId: string, deviceId: string): Promise<number> {
@@ -33,7 +40,7 @@ export class SessionRepository {
             userId: userId,
             deviceId: { $ne: deviceId } // $ne (Not Equal) - Не равно текущему deviceId
         };
-        const deleteResult = await sessionCollection.deleteMany(filter);
+        const deleteResult = await SessionModel.deleteMany(filter);
 
         console.log(`Deleted ${deleteResult.deletedCount} sessions for user ${userId}, except device ${deviceId}`);
 
@@ -41,7 +48,7 @@ export class SessionRepository {
     }
 
     async deleteByDeviceId(deviceId: string, userId: string): Promise<boolean> {
-        const deleteResult = await sessionCollection.deleteOne({
+        const deleteResult = await SessionModel.deleteOne({
             deviceId: deviceId,
             userId: userId // Убеждаемся, что сессия принадлежит пользователю
         });

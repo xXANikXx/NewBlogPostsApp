@@ -1,10 +1,9 @@
-import { WithId } from "mongodb";
-import { Blog } from "../../domain/blog";
 import {BlogListPaginatedOutput} from "../output/blog-list-paginated.output";
+import {BlogDocument} from "../../domain/blog.entity";
 
 
 export function mapToBlogListPaginatedOutput(
-    blogs: WithId<Blog>[],
+    blogs: BlogDocument[],
     meta: { pageNumber: number; pageSize: number; totalCount: number }
 ): BlogListPaginatedOutput {
 
@@ -25,7 +24,7 @@ export function mapToBlogListPaginatedOutput(
             name: blog.name,
             description: blog.description,
             websiteUrl: blog.websiteUrl,
-            createdAt: blog.createdAt,
+            createdAt: blog.createdAt.toISOString(),
             isMembership: blog.isMembership,
         })),
     };

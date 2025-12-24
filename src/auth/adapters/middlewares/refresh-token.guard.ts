@@ -1,9 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
-import {jwtService, sessionRepository} from "../../../composition.root";
+import {JwtService} from "../jwt.service";
+import {inject, injectable} from "inversify";
+import {
+    SessionRepository
+} from "../../authorization/repository/session.repository";
 
 
-export const refreshTokenGuard = async (req: Request, res: Response, next: NextFunction) => {
+@injectable()
+export class RefreshTokenGuard {
+
+    constructor(@inject(JwtService) private jwtService: JwtService,
+                @inject(SessionRepository) private sessionRepository: SessionRepository) {}
+
+    public handle = async (req: Request, res: Response, next: NextFunction) => {
 
     const refreshToken = req.cookies.refreshToken;
 
@@ -13,7 +23,7 @@ export const refreshTokenGuard = async (req: Request, res: Response, next: NextF
     }
 
 
-    const payload = await jwtService.verifyRefreshToken(refreshToken);
+    const payload = await this.jwtService.verifyRefreshToken(refreshToken);
     if (!payload) {
         return res.sendStatus(HttpStatus.Unauthorized); // 2. Истёк/Невалидная сигнатура -> 401
     }
@@ -21,7 +31,7 @@ export const refreshTokenGuard = async (req: Request, res: Response, next: NextF
     const {userId, deviceId, iat } = payload;
 
 
-const session = await sessionRepository.findSession(userId, deviceId)
+const session = await this.sessionRepository.findSession(userId, deviceId)
 
         if(!session){
 
@@ -46,4 +56,4 @@ const session = await sessionRepository.findSession(userId, deviceId)
 
     next();
 
-}
+} }

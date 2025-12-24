@@ -6,40 +6,39 @@ import {BlogSortField} from "./request-payloads/blog-soft-field";
 import {
     inputValidationResultMiddleware
 } from "../../core/middlewares/input-validation-result.middleware";
-import {getBlogListHandler} from "./http-handlers/get-blog.handler";
-import {
-    idValidation
-} from "../../core/middlewares/params-id.validation-middleware";
-import {getBlogHandler} from "./http-handlers/get-blog-list.handler";
 import {
     superAdminGuardMiddleware
 } from "../../auth/adapters/middlewares/super-admin.guard-middleware";
 import {blogInputDtoValidation} from "./blog.input-dto.validation";
-import {createBlogHandler} from "./http-handlers/create-blog.handler";
-import {updateBlogHandler} from "./http-handlers/update-blog.handler";
-import {deleteBlogHandler} from "./http-handlers/delete-blog.handler";
+
 import {POSTS_PATH} from "../../core/paths/paths";
 import {PostSortField} from "../../posts/routers/request-payloads/post-soft-field";
-import {getBlogPostListHandler} from "./http-handlers/get-blog-post-list.handler";
 import {
     createPostByBlogValidation
 } from "../../posts/routers/post.input-dto.validation";
-import {createPostByBlogHandler} from "./http-handlers/post-blog-post-list.handler";
+import {BlogsController} from "./blogs-controller/blogs-controller";
+import {container} from "../../composition.root";
+import {
+    idValidation
+} from "../../core/middlewares/params-id.validation-middleware";
+
 
 
 export const blogsRouter = Router({});
 
+const controller = container.get(BlogsController);
+
 blogsRouter
-    .get("/", paginationAndSortingValidation(BlogSortField), inputValidationResultMiddleware, getBlogListHandler)
+    .get("/", paginationAndSortingValidation(BlogSortField), inputValidationResultMiddleware, controller.getBlogListHandler.bind(controller))
 
-    .get('/:id', idValidation, inputValidationResultMiddleware, getBlogHandler)
+    .get('/:id', idValidation, inputValidationResultMiddleware, controller.getBlogHandler.bind(controller))
 
-    .post('/', superAdminGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
+    .post('/', superAdminGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, controller.createBlogHandler.bind(controller))
 
-    .put('/:id', superAdminGuardMiddleware, idValidation, blogInputDtoValidation, inputValidationResultMiddleware, updateBlogHandler)
+    .put('/:id', superAdminGuardMiddleware, idValidation, blogInputDtoValidation, inputValidationResultMiddleware, controller.updateBlogHandler.bind(controller))
 
-    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, deleteBlogHandler)
+    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, controller.deleteBlogHandler.bind(controller))
 
-    .get(`/:id${POSTS_PATH}`, idValidation, paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getBlogPostListHandler)
+    .get(`/:id${POSTS_PATH}`, idValidation, paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, controller.getBlogPostListHandler.bind(controller))
 
-    .post(`/:id${POSTS_PATH}`, superAdminGuardMiddleware, idValidation, createPostByBlogValidation, inputValidationResultMiddleware, createPostByBlogHandler)
+    .post(`/:id${POSTS_PATH}`, superAdminGuardMiddleware, idValidation, createPostByBlogValidation, inputValidationResultMiddleware, controller.createPostByBlogHandler.bind(controller))

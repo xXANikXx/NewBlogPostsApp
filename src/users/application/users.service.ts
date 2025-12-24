@@ -1,16 +1,18 @@
 import {CreateUserCommand} from "./command-handlers/user-commands";
-import {User} from "../domain/user";
 import {UsersRepository} from "../repositoriesUsers/users.repository";
 import {LoginEmailError} from "../../core/errors/login-email.error";
 import {
     BcryptService,
 } from "../../auth/adapters/crypto/password-hasher";
+import {inject, injectable} from "inversify";
+import {UserModel} from "../domain/user.entity";
+import {randomUUID} from "crypto";
 
-
+@injectable()
 export class UsersService {
 
-    constructor(  private usersRepository: UsersRepository,
-                  private bcryptService: BcryptService) {
+    constructor( @inject(UsersRepository) private usersRepository: UsersRepository,
+                 @inject(BcryptService) private bcryptService: BcryptService) {
 
     }
 
@@ -33,15 +35,17 @@ export class UsersService {
         const passwordHash = await this.bcryptService.generateHash(password);
 
         //Создаём пользователя через фабричный метод
-        const newUser = User.create({
+        const newUser = new UserModel({
             login,
             email,
             passwordHash,
             createdAt: new Date().toISOString(),
             emailConfirmation: {
-                confirmationCode: '',
+                confirmationCode: randomUUID(),
                 isConfirmed: false,
                 expirationDate: new Date(),
+            },
+            passwordRecovery: {
             },
         });
 

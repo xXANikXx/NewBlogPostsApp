@@ -2,12 +2,10 @@ import {UserListQuery} from "../application/query-handlers/user-list.query";
 import {
     UserListPaginatedOutput
 } from "../application/output/user-list-paginated.output";
-import { userCollection} from "../../db/mongo.db";
 import {
     mapToUserListPaginatedOutput
 } from "../application/mappers/map-to-user-list-paginated-output";
 import {UserOutput} from "../application/output/user.output";
-import {ObjectId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
@@ -16,7 +14,7 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
-import {User} from "../domain/user";
+import {UserDocument, UserModel} from "../domain/user.entity";
 
 
 
@@ -59,13 +57,12 @@ export class UserQueryRepository {
 
         // 3️⃣ Запрос в Mongo
         const [items, totalCount] = await Promise.all([
-            userCollection
+            UserModel
                 .find(filter)
                 .sort(sort)
                 .skip(skip)
-                .limit(pageSizeNum)
-                .toArray(),
-            userCollection.countDocuments(filter)
+                .limit(pageSizeNum),
+            UserModel.countDocuments(filter)
         ])
 
         return mapToUserListPaginatedOutput(items, {
@@ -77,7 +74,7 @@ export class UserQueryRepository {
 
 
     async findByIdOrFail(id: string): Promise<UserOutput> {
-        const user = await userCollection.findOne({_id:new ObjectId(id)});
+        const user = await UserModel.findById(id);
     if (!user) {
         throw new RepositoryNotFoundError('User not found');
     }
@@ -86,20 +83,20 @@ export class UserQueryRepository {
     }
 
 
-    async findByConfirmationCode(code: string): Promise<User | null> {
-        const user = await userCollection.findOne({ 'emailConfirmation.confirmationCode': code });
-        return user ? User.reconstitute(user) : null;
+    async findByConfirmationCode(code: string): Promise<UserDocument | null> {
+        const user = await UserModel.findOne({ 'emailConfirmation.confirmationCode': code });
+        return user;
     }
 
-    async findByLogin(login: string): Promise<User | null> { // Лучше возвращать доменную сущность
-        const found = await userCollection.findOne({ login });
+    async findByLogin(login: string): Promise<UserDocument | null> { // Лучше возвращать доменную сущность
+        const found = await UserModel.findOne({ login });
         // ✅ Если найден, преобразуем в доменную сущность (или DTO), иначе null
-        return found ? User.reconstitute(found) : null;
+        return found;
     }
 
-    async findByEmail(email: string): Promise<User | null> { // Лучше возвращать доменную сущность
-        const found = await userCollection.findOne({ email });
-        return found ? User.reconstitute(found) : null;
+    async findByEmail(email: string): Promise<UserDocument | null> { // Лучше возвращать доменную сущность
+        const found = await UserModel.findOne({ email });
+        return found;
     }
 }
 

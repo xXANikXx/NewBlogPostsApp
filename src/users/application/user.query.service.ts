@@ -4,11 +4,14 @@ import {
     UserListRequestPayload
 } from "../routers/request-payloads/user-list-request.payload";
 import {UserQueryRepository} from "../repositoriesUsers/user.query.repository";
+import {inject, injectable} from "inversify";
 
+
+@injectable()
 export class UserQueryService {
 
 
-    constructor(    private userQueryRepository: UserQueryRepository
+    constructor( @inject(UserQueryRepository)   private userQueryRepository: UserQueryRepository
 ) {
     }
         async findMany(queryDto: UserListRequestPayload

@@ -1,23 +1,24 @@
-import {Blog} from "../domain/blog";
 import {
     CreateBlogCommand,
     UpdateBlogCommand
 } from "./command-handlers/blog-commands";
 import {BlogsRepository} from "../repositoriesBlogs/blogs.repository";
 import {PostsRepository} from "../../posts/repositoriesPosts/posts.repository";
+import {inject, injectable} from "inversify";
+import {BlogModel} from "../domain/blog.entity";
 
-
+@injectable()
 export class BlogsService {
 
-    constructor(private blogsRepository: BlogsRepository,
-    private postsRepository: PostsRepository) {
+    constructor(@inject(BlogsRepository) private blogsRepository: BlogsRepository,
+    @inject(PostsRepository) private postsRepository: PostsRepository) {
 
     }
 
     async create(command: CreateBlogCommand): Promise<string> {
-        const newBlog = Blog.create({
+        const newBlog = new BlogModel({
             ...command,
-            createdAt: new Date().toISOString(),
+            createdAt: new Date(),
             isMembership: false,
         });
 
@@ -27,15 +28,15 @@ export class BlogsService {
 
 
     async update(command: UpdateBlogCommand): Promise<void> {
-        const {id, ...blogDomainDto} = command;
+        const { id, name, description, websiteUrl } = command;
 
         const blog = await this.blogsRepository.findByIdOrFail(id);
 
-        blog.update(blogDomainDto);
+        blog.name = name;
+        blog.description = description;
+        blog.websiteUrl = websiteUrl;
 
         await this.blogsRepository.save(blog);
-
-        return;
     }
 
 

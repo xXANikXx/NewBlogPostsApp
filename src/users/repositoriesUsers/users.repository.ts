@@ -1,49 +1,34 @@
-import {User} from "../domain/user";
-import {userCollection} from "../../db/mongo.db";
-import {ObjectId, WithId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
-import {UserDomainDto} from "../domain/user-domain.dto";
+import {injectable} from "inversify";
+import {UserDocument, UserModel} from "../domain/user.entity";
 
-
+@injectable()
 export class UsersRepository {
-    async findByIdOrFail(id: string): Promise<User> {
-        const res = await userCollection.findOne({_id: new ObjectId(id)});
-        if (!res) {
+    async findByIdOrFail(id: string): Promise<UserDocument> {
+        const user = await UserModel.findById(id);
+        if (!user) {
             throw new RepositoryNotFoundError('User not exists');
-        }
-        return User.reconstitute(res);
-    }
-
-    async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserDomainDto> | null> {
-        const found = await userCollection.findOne({
-            $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
-        });
-
-        return found ? User.reconstitute(found) : null;
-    }
-
-    async save(user: User): Promise<User> {
-        if (!user._id) {
-            // 1. ВСТАВКА (INSERT)
-            const insertResult = await userCollection.insertOne(user);
-            user._id = insertResult.insertedId; // Обновляем _id в объекте User
-        } else {
-            // 2. ОБНОВЛЕНИЕ (UPDATE)
-            // Исключаем _id из объекта для безопасного $set
-            const { _id, ...dtoToUpdate } = user;
-
-            await userCollection.updateOne(
-                { _id: user._id },
-                { $set: dtoToUpdate } // Обновляем все поля, кроме _id
-            );
         }
         return user;
     }
 
+    async findByLoginOrEmail(loginOrEmail: string): Promise<UserDocument | null> {
+        const found = await UserModel.findOne({
+            $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
+        });
+
+        return found;
+    }
+
+    async save(user: UserDocument): Promise<UserDocument> {
+
+        return user.save();
+    }
+
     async delete(id: string): Promise<void> {
-        const deleteResult = await userCollection.deleteOne({_id: new ObjectId(id)});
+        const deleteResult = await UserModel.deleteOne({_id: id});
 
         if (deleteResult.deletedCount < 1) {
             throw new RepositoryNotFoundError('User not exists');
@@ -55,10 +40,22 @@ export class UsersRepository {
         login: string,
         email: string
     ): Promise<boolean> {
-        const user = await userCollection.findOne({
+        const user = await UserModel.findOne({
             $or: [{ email }, { login }],
         });
         return !!user;
+    }
+
+    async findByRecoveryCode(recoveryCode: string): Promise<UserDocument | null> {
+        const userDocument = await UserModel.findOne({
+            "passwordRecovery.recoveryCode": recoveryCode,
+        });
+
+        if (!userDocument) {
+            return null;
+        }
+
+        return userDocument;
     }
 
 

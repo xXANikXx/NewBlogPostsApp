@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs'
+import {injectable} from "inversify";
 
+@injectable()
 export class BcryptService {
     async generateHash(password: string):Promise<string> {
         return bcrypt.hash(password, 10);

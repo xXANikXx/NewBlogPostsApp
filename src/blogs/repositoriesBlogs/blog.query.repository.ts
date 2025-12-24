@@ -1,14 +1,12 @@
 import {
     BlogListPaginatedOutput
 } from "../application/output/blog-list-paginated.output";
-import { ObjectId } from 'mongodb';
 import {BlogListQuery} from "../application/query-handlers/blog-list.query";
 import {BlogOutput} from "../application/output/blog.output";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
 import {mapToBlogOutput} from "../application/mappers/map-to-blog-output.utill";
-import {blogCollection} from "../../db/mongo.db";
 import {
     mapToBlogListPaginatedOutput
 } from "../application/mappers/map-to-blog-list-paginated-output";
@@ -16,6 +14,7 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
+import {BlogModel} from "../domain/blog.entity";
 
 
 export class BlogQueryRepository {
@@ -36,25 +35,21 @@ export class BlogQueryRepository {
         const sortByField = sortBy || DEFAULT_SORT_BY;
         const sortDir = sortDirection === 'asc' ? 1 : -1;
 
-        // 1️⃣ Пагинация и фильтр
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const filter = queryDto.searchNameTerm
             ? { name: { $regex: queryDto.searchNameTerm, $options: 'i' } }
             : {};
 
-        // 3️⃣ Запрос в Mongo
        const [items, totalCount] = await Promise.all([
-           blogCollection
+           BlogModel
                .find(filter)
                .sort({[sortByField]: sortDir})
                .skip(skip)
-           .limit(pageSizeNum)
-               .toArray(),
-           blogCollection.countDocuments(filter)
+           .limit(pageSizeNum),
+           BlogModel.countDocuments(filter)
        ])
 
-        // 4️⃣ Формирование результата
         return mapToBlogListPaginatedOutput(items, {
             pageNumber: pageNumberNum,
             pageSize: pageSizeNum,
@@ -63,7 +58,7 @@ export class BlogQueryRepository {
     }
 
     async findByIdOrFail(id: string): Promise<BlogOutput> {
-        const blog = await blogCollection.findOne({ _id: new ObjectId(id) });
+        const blog = await BlogModel.findById(id);
 
         if (!blog) {
             throw new RepositoryNotFoundError('Blog not exist');

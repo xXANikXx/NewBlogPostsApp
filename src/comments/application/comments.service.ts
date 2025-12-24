@@ -5,14 +5,17 @@ import {
 import {
     PostsRepository,
 } from "../../posts/repositoriesPosts/posts.repository";
-import {Comment} from "../domain/comment";
 import {CommentsRepository} from "../repositoriesComments/comment.repository";
 import {ForbiddenError} from "../../core/errors/forbidden.Error";
+import {inject, injectable} from "inversify";
+import {CommentModel} from "../domain/comment.entity";
+
+@injectable()
 export class CommentsService {
 
 
-    constructor( private commentsRepository: CommentsRepository,
-    private postsRepository: PostsRepository) {
+    constructor(@inject(CommentsRepository) private commentsRepository: CommentsRepository,
+   @inject(PostsRepository) private postsRepository: PostsRepository) {
 
     }
 
@@ -26,11 +29,9 @@ export class CommentsService {
             throw new ForbiddenError('You can edit only your own comment');
         }
 
-        comment.update({content});
+        comment.content = content;
 
         await this.commentsRepository.save(comment);
-
-        return;
     }
 
     async delete(id:string,  userId: string): Promise<void> {
@@ -44,9 +45,9 @@ export class CommentsService {
     }
 
     async createCommentsByPost(dto: CreateCommentsByPostCommand): Promise<string> {
-        const post = await this.postsRepository.findByIdOrFail(dto.postId)
+    await this.postsRepository.findByIdOrFail(dto.postId)
 
-        const newComment = Comment.create({
+        const newComment = new CommentModel({
             content: dto.content,
             commentatorInfo: {
                 userId: dto.userId,

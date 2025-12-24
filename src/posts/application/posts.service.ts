@@ -1,4 +1,3 @@
-import { Post } from "../domain/post";
 import {BlogsRepository} from "../../blogs/repositoriesBlogs/blogs.repository";
 import {
     CreatePostByBlogCommand,
@@ -6,20 +5,21 @@ import {
     UpdatePostCommand
 } from "./command-handlers/post-command";
 import {PostsRepository} from "../repositoriesPosts/posts.repository";
-import {blogsRepository, postsRepository} from "../../composition.root";
+import {inject, injectable} from "inversify";
+import {PostModel} from "../domain/posts.entity";
 
 
-
+@injectable()
 export class PostsService {
 
-    constructor(private postsRepository: PostsRepository,
-    private blogsRepository: BlogsRepository) {
+    constructor(@inject(PostsRepository) private postsRepository: PostsRepository,
+    @inject(BlogsRepository) private blogsRepository: BlogsRepository) {
     }
 
     async create(dto: CreatePostCommand): Promise<string> {
         const blog = await this.blogsRepository.findByIdOrFail(dto.blogId);
 
-        const newPost = Post.create({
+        const newPost = new PostModel({
             title: dto.title,
             shortDescription: dto.shortDescription,
             content: dto.content,
@@ -36,7 +36,7 @@ export class PostsService {
     async createPostByBlog(dto: CreatePostByBlogCommand): Promise<string> {
         const blog = await this.blogsRepository.findByIdOrFail(dto.blogId);
 
-        const newPost = Post.create({
+        const newPost = new PostModel({
             title: dto.title,
             shortDescription: dto.shortDescription,
             content: dto.content,
@@ -52,10 +52,13 @@ export class PostsService {
 
 
     async update(command: UpdatePostCommand): Promise<void> {
-        const {id, ...postDomainDto} = command;
+        const {id, title, shortDescription, content, blogId} = command;
 
         const post = await this.postsRepository.findByIdOrFail(id);
-        post.update(postDomainDto);
+        post.title = title;
+        post.shortDescription = shortDescription;
+        post.content = content;
+        post.blogId = blogId;
 
         await this.postsRepository.save(post);
 

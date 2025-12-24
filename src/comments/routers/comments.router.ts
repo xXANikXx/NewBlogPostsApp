@@ -5,28 +5,24 @@ import {
 import {
     inputValidationResultMiddleware
 } from "../../core/middlewares/input-validation-result.middleware";
-import {getCommentHandler} from "./http-handlers/get-comment.handler";
+
 import {
-    accessTokenGuard
-} from "../../auth/adapters/middlewares/access.token.guard";
-import {updateCommentHandler} from "./http-handlers/update-comment.handler";
-import {deleteCommentHandler} from "./http-handlers/delete-comment.handler";
-import {
-    paginationAndSortingValidation
-} from "../../core/middlewares/query-pagination-sorting.validation-middleware";
-import {CommentSortField} from "./request-payloads/comment-sort-field";
-import {
-    getCommentsByPostHandler
-} from "./http-handlers/get-comments-post.handler";
+    AccessTokenGuard,} from "../../auth/adapters/middlewares/access.token.guard";
 import {commentInputDtoValidation} from "./comment.input-dto.validation";
-import {
-    createCommentsByPostHandler
-} from "./http-handlers/create-comments-post.handler";
+import {container} from "../../composition.root";
+import {CommentsController} from "./comments-controller/comments-controller";
+import {LikeController} from "../../likes/router/like-controller";
+import {likeStatusValidation} from "../../likes/router/validation/validation";
 
 
 export const commentRouter = Router({});
 
+const controller = container.get(CommentsController);
+const accessTokenGuard = container.get(AccessTokenGuard);
+const likeController = container.get(LikeController);
+
 commentRouter
-    .get("/:id", idValidation, inputValidationResultMiddleware, getCommentHandler)
-    .put("/:id", accessTokenGuard, idValidation, commentInputDtoValidation, inputValidationResultMiddleware, updateCommentHandler)
-.delete("/:id", accessTokenGuard, idValidation, inputValidationResultMiddleware,deleteCommentHandler)
+    .get("/:id", idValidation, inputValidationResultMiddleware, controller.getCommentHandler.bind(controller))
+    .put("/:id", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, commentInputDtoValidation, inputValidationResultMiddleware, controller.updateCommentHandler.bind(controller))
+    .delete("/:id", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, inputValidationResultMiddleware, controller.deleteCommentHandler.bind(controller))
+    .put("/:id/like-status", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, likeStatusValidation, inputValidationResultMiddleware, likeController.likeHandler.bind(likeController)  )

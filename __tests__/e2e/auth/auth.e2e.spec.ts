@@ -3,14 +3,16 @@ import { setupApp } from '../../../src/setup-app';
 import express from 'express';
 import { HttpStatus } from '../../../src/core/typesAny/http-statuses';
 import { clearDb } from '../../utils/clear-db';
-import { runDB, stopDb } from '../../../src/db/mongo.db';
+import { stopDb } from '../../../src/db/mongo.db';
+import mongoose from "mongoose";
+import {SETTINGS} from "../../../src/core/settings/settings";
 
 describe('Authorization jwt', () => {
     const app = express();
     setupApp(app);
 
     beforeAll(async () => {
-        await runDB('mongodb+srv://nik:nik@lesson.mezyenu.mongodb.net/blogspostsapp?retryWrites=true&w=majority');
+        await mongoose.connect(SETTINGS.MONGO_URL)
         await clearDb(app);
     });
 

@@ -1,9 +1,5 @@
-import {UserDomainDto} from "../../../users/domain/user-domain.dto";
 import {Result} from "../../../common/result/result.type";
 import {ResultStatus} from "../../../common/result/resultCode";
-import {WithId} from "mongodb";
-
-import {User} from "../../../users/domain/user";
 import {emailExamples} from "../../adapters/emailExamples";
 import {randomUUID} from "crypto";
 import {add} from 'date-fns/add';
@@ -20,17 +16,19 @@ import {
     UserQueryRepository
 } from "../../../users/repositoriesUsers/user.query.repository";
 import {BcryptService} from "../../adapters/crypto/password-hasher";
+import {inject, injectable} from "inversify";
+import {UserDocument, UserModel} from "../../../users/domain/user.entity";
 
-
+@injectable()
 export class AuthService {
 
 
-    constructor(private nodemailerService: NodemailerService,
-                private jwtService: JwtService,
-                private bcryptService: BcryptService,
-                private sessionRepository: SessionRepository,
-                private usersRepository: UsersRepository,
-                private userQueryRepository: UserQueryRepository) {}
+    constructor(@inject(NodemailerService) private nodemailerService: NodemailerService,
+                @inject(JwtService) private jwtService: JwtService,
+                @inject(BcryptService) private bcryptService: BcryptService,
+                @inject(SessionRepository) private sessionRepository: SessionRepository,
+                @inject(UsersRepository) private usersRepository: UsersRepository,
+                @inject(UserQueryRepository) private userQueryRepository: UserQueryRepository) {}
 
     async loginUser(
         loginOrEmail: string,
@@ -71,7 +69,7 @@ export class AuthService {
             const tokenCreationTimeInSeconds = Math.floor(Date.now() / 1000);
             const correctIatDate = new Date(tokenCreationTimeInSeconds * 1000);
 
-            await this.sessionRepository.save({
+            await this.sessionRepository.create({
                 userId,
                 expiresAt: rtExpirationDate,
                     iat: correctIatDate,
@@ -96,7 +94,7 @@ export class AuthService {
     async checkUserCredentials(
         loginOrEmail: string,
         password: string,
-    ): Promise<Result<WithId<UserDomainDto> | null>> {
+    ): Promise<Result<UserDocument | null>> {
         console.log('[authService] checkUserCredentials called');
 
         const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
@@ -177,7 +175,7 @@ export class AuthService {
         console.log('--------------------------');
 
 
-        await this.sessionRepository.save({
+        await this.sessionRepository.create({
             userId: userId,
             expiresAt: rtExpirationDate,
             iat: correctIatDate,
@@ -241,7 +239,7 @@ export class AuthService {
         console.log('[registerUser] Password hashed successfully');
 
 
-        const newUser = User.create({ // сформировать dto юзера
+        const newUser = new UserModel({ // сформировать dto юзера
             login,
             email,
             passwordHash,
@@ -253,7 +251,11 @@ export class AuthService {
                     minutes: 30,
                 }),
                 isConfirmed: false
-            }
+            },
+            passwordRecovery: {
+                recoveryCode: null,
+                expirationDate: null,
+            },
         });
 
 
@@ -336,9 +338,9 @@ export class AuthService {
     }
 
     async resendEmail(email: string): Promise<Result<any>> {
-        const user = await this.usersRepository.findByLoginOrEmail(email);
+        const userData = await this.usersRepository.findByLoginOrEmail(email);
 
-        if (!user) {
+        if (!userData) {
             return {
                 status: ResultStatus.BadRequest,
                 errorMessage: 'Bad Request',
@@ -348,6 +350,8 @@ export class AuthService {
                 ],
             }
         }
+
+const user = userData;
 
         if (user.emailConfirmation.isConfirmed) {
             return {
@@ -396,5 +400,89 @@ export class AuthService {
             extensions: [],
         };
     }
+
+    async passwordRecovery(email: string): Promise<Result<null>> {
+        console.log('[passwordRecovery] called for email:', email);
+
+        const userData = await this.usersRepository.findByLoginOrEmail(email);
+        if (!userData) {
+            console.log('[passwordRecovery] User not found, returning 204 success anyway.');
+            return {
+                status: ResultStatus.Success,
+                data: null,
+                extensions: [],
+            }
+        }
+
+        const user = userData;
+
+        const recoveryCode = randomUUID();
+        const expirationDate = add(new Date(), {
+            hours: 1,
+        });
+
+        user.passwordRecovery.recoveryCode = recoveryCode;
+        user.passwordRecovery.expirationDate = expirationDate;
+
+        await this.usersRepository.save(user);
+
+        console.log('[passwordRecovery] User updated, sending email with code:', recoveryCode);
+
+        try {
+            await this.nodemailerService.sendEmail(
+                user.email,
+                recoveryCode,
+                emailExamples.passwordRecoveryEmail
+            );
+        } catch (e: unknown) {
+            console.error('Send password recovery email error', e);
+        }
+
+        return {
+            status: ResultStatus.Success,
+            data: null,
+            extensions: [],
+        };
+    }
+
+    async setNewPassword(newPassword: string, recoveryCode: string) : Promise<Result<null>> {
+        console.log('[setNewPassword] called with code:', recoveryCode.substring(0, 10) + '...');
+
+        const userData = await this.usersRepository.findByRecoveryCode(recoveryCode);
+
+        const codeIsInvalid = !userData ||
+            !userData.passwordRecovery ||
+            userData.passwordRecovery.recoveryCode !== recoveryCode ||
+            !userData.passwordRecovery.expirationDate ||
+            new Date() > userData.passwordRecovery.expirationDate;
+
+        if (codeIsInvalid) {
+            console.log('[setNewPassword] Code is invalid or expired.');
+            return {
+                status: ResultStatus.BadRequest,
+                errorMessage: 'Recovery code is incorrect or expired',
+                data: null,
+                extensions: [{ field: 'recoveryCode', message: 'Recovery code is incorrect or expired' }],
+            };
+        }
+
+        const user = userData;
+
+        const newPasswordHash = await this.bcryptService.generateHash(newPassword);
+
+        user.passwordHash = newPasswordHash;
+        user.passwordRecovery.recoveryCode = null;
+        user.passwordRecovery.expirationDate = null;
+        await this.usersRepository.save(user);
+
+        console.log('[setNewPassword] Password updated successfully for user:', user.email);
+
+        return {
+            status: ResultStatus.Success, // Вернет 204 в контроллере
+            data: null,
+            extensions: [],
+        };
+    }
+
 }
 

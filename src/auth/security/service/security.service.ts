@@ -8,11 +8,12 @@ import {Result} from "../../../common/result/result.type";
 import {
     SessionRepository
 } from "../../authorization/repository/session.repository";
+import {inject, injectable} from "inversify";
 
-
+@injectable()
 export class SecurityService {
 
-    constructor(private sessionRepository: SessionRepository) {
+    constructor(@inject(SessionRepository) private sessionRepository: SessionRepository) {
 
     }
 

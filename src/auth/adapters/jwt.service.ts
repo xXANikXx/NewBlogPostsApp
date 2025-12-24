@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import {appConfig} from "../../common/config/config";
+import {injectable} from "inversify";
 
+@injectable()
 export class JwtService {
     async createToken(userId: string): Promise<string> {
         console.log('createToken params:', { userId, secret: appConfig.AC_SECRET, time: appConfig.AC_TIME });

@@ -6,48 +6,46 @@ import {PostSortField} from "./request-payloads/post-soft-field";
 import {
     inputValidationResultMiddleware
 } from "../../core/middlewares/input-validation-result.middleware";
-import {getPostListHandler} from "./http-handlers/get-post.handler";
 import {
     idValidation
 } from "../../core/middlewares/params-id.validation-middleware";
-import {getPostHandler} from "./http-handlers/get-post-list.handler";
 import {
     superAdminGuardMiddleware
 } from "../../auth/adapters/middlewares/super-admin.guard-middleware";
 import {postInputDtoValidation} from "./post.input-dto.validation";
-import {createPostHandler} from "./http-handlers/create-post.handler";
-import {updatePostHandler} from "./http-handlers/update-post.handler";
-import {deletePost} from "./http-handlers/delete-post.handler";
 import {COMMENTS_PATH, POSTS_PATH} from "../../core/paths/paths";
 import {
     CommentSortField
 } from "../../comments/routers/request-payloads/comment-sort-field";
 import {
-    getCommentsByPostHandler
-} from "../../comments/routers/http-handlers/get-comments-post.handler";
-import {
-    accessTokenGuard
-} from "../../auth/adapters/middlewares/access.token.guard";
-import {
     commentInputDtoValidation
 } from "../../comments/routers/comment.input-dto.validation";
+import {container} from "../../composition.root";
+import {PostsController} from "./posts-controller/posts-controller";
 import {
-    createCommentsByPostHandler
-} from "../../comments/routers/http-handlers/create-comments-post.handler";
+    CommentsController
+} from "../../comments/routers/comments-controller/comments-controller";
+import {
+    AccessTokenGuard
+} from "../../auth/adapters/middlewares/access.token.guard";
 
 export const postsRouter = Router({});
 
+const controller = container.get(PostsController);
+const controllerComments = container.get(CommentsController);
+const accessTokenGuard = container.get(AccessTokenGuard);
+
 postsRouter
-    .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, getPostListHandler)
+    .get('/', paginationAndSortingValidation(PostSortField), inputValidationResultMiddleware, controller.getPostListHandler.bind(controller))
 
-    .get('/:id', idValidation, inputValidationResultMiddleware, getPostHandler)
+    .get('/:id', idValidation, inputValidationResultMiddleware, controller.getPostHandler.bind(controller))
 
-    .post('/', superAdminGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, createPostHandler)
+    .post('/', superAdminGuardMiddleware, postInputDtoValidation, inputValidationResultMiddleware, controller.createPostHandler.bind(controller))
 
-    .put('/:id', superAdminGuardMiddleware, idValidation, postInputDtoValidation, inputValidationResultMiddleware, updatePostHandler)
+    .put('/:id', superAdminGuardMiddleware, idValidation, postInputDtoValidation, inputValidationResultMiddleware, controller.updatePostHandler.bind(controller))
 
-    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, deletePost)
+    .delete('/:id', superAdminGuardMiddleware, idValidation, inputValidationResultMiddleware, controller.deletePost.bind(controller))
 
-    .get(`/:id${COMMENTS_PATH}`, idValidation, paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, getCommentsByPostHandler)
+    .get(`/:id${COMMENTS_PATH}`, idValidation, paginationAndSortingValidation(CommentSortField), inputValidationResultMiddleware, controllerComments.getCommentsByPostHandler.bind(controllerComments))
 
-    .post(`/:id${COMMENTS_PATH}`, accessTokenGuard, idValidation, commentInputDtoValidation,inputValidationResultMiddleware, createCommentsByPostHandler)
+    .post(`/:id${COMMENTS_PATH}`, accessTokenGuard.handle.bind(accessTokenGuard), idValidation, commentInputDtoValidation,inputValidationResultMiddleware, controllerComments.createCommentsByPostHandler.bind(controllerComments))

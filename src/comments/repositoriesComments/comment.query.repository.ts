@@ -8,19 +8,17 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
-import {commentCollection} from "../../db/mongo.db";
 import {
     mapToCommentListPaginatedOutput
 } from "../application/mappers/map-to-comment-list-paginated-output";
 import {CommentOutput} from "../application/output/comment.output";
-import {ObjectId} from "mongodb";
 import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
 import {
     mapToCommentOutput
 } from "../application/mappers/map-to-comment-output.utill";
-
+import {CommentModel} from "../domain/comment.entity";
 
 export class CommentQueryRepository {
     async findCommentsByPost(
@@ -37,13 +35,12 @@ export class CommentQueryRepository {
         const skip = (pageNumberNum - 1) * pageSizeNum;
 
         const [items, totalCount] = await Promise.all([
-            commentCollection
+            CommentModel
                 .find(filter)
                 .sort({ [sortBy]: sortDirection })
                 .skip(skip)
-                .limit(pageSizeNum)
-                .toArray(),
-            commentCollection.countDocuments(filter),
+                .limit(pageSizeNum),
+            CommentModel.countDocuments(filter),
         ]);
 
         return mapToCommentListPaginatedOutput(items, {
@@ -54,7 +51,7 @@ export class CommentQueryRepository {
     }
 
     async findByIdOrFail(id: string): Promise<CommentOutput>{
-        const comment = await commentCollection.findOne({_id: new ObjectId(id)});
+        const comment = await CommentModel.findById(id);
 
         if (!comment) {
             throw new RepositoryNotFoundError('Comment not found');
