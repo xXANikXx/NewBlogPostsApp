@@ -1,7 +1,7 @@
 import {injectable} from "inversify";
 import {
     EntityType,
-    LikeDocument,
+    LikeDocument, LikeDto,
     LikeModel,
     LikeStatus
 } from "../domain/like-entity";
@@ -50,6 +50,18 @@ export class LikeRepository {
         const like = await this.findLikeStatus(userId, entityId, entityType);
 
         return like? like.status : LikeStatus.None;
+    }
+
+
+    async getNewestLikes(postId: string): Promise<LikeDto[]>{
+        return LikeModel.find({
+            entityId: postId,
+            entityType: EntityType.Post,
+            status: LikeStatus.Like
+        })
+            .sort({ addedAt: -1 })
+            .limit(3)
+            .lean();
     }
 
 }

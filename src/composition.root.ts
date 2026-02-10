@@ -69,6 +69,7 @@ import {AccessTokenGuard} from "./auth/adapters/middlewares/access.token.guard";
 import {LikeRepository} from "./likes/repositories/like-repository";
 import {LikeService} from "./likes/application/like-service";
 import {LikeController} from "./likes/router/like-controller";
+import {NoneStatusGuard} from "./auth/adapters/middlewares/none-status.guard";
 
 
 export const container = new Container();
@@ -76,7 +77,7 @@ export const container = new Container();
 container.bind(RefreshTokenGuard).to(RefreshTokenGuard);
 container.bind(RateLimitMiddleware).to(RateLimitMiddleware);
 container.bind(AccessTokenGuard).to(AccessTokenGuard);
-
+container.bind(NoneStatusGuard).to(NoneStatusGuard);
 
 container.bind(NodemailerService).to(NodemailerService);
 container.bind(JwtService).to(JwtService);

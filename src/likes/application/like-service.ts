@@ -18,16 +18,20 @@ export class LikeService {
 
     async changeLikeStatus(
         userId: string,
+        userLogin: string,
         entityId: string,
         entityType: EntityType,
         newStatus: LikeStatus
     ): Promise<void> {
 
-        // проверяем существование коммента
-        await this.commentsRepository.findByIdOrFail(entityId);
+        if (entityType === EntityType.Post) {
+            // Если пост не найден, findByIdOrFail выбросит ошибку,
+            await this.postsRepository.findByIdOrFail(entityId);
+        } else {
+            await this.commentsRepository.findByIdOrFail(entityId);
+        }
 
         const existingLike = await this.likeRepository.findLikeStatus(userId, entityId, entityType);
-
 
         //если статуса нет, то создаём новый
         if (!existingLike) {
@@ -37,6 +41,7 @@ export class LikeService {
 
             const newLike = new LikeModel({
                 userId,
+                userLogin,
                 entityId,
                 entityType,
                 status: newStatus,
@@ -64,6 +69,7 @@ export class LikeService {
 
             //обновляем, если пришёл лайк, а у нас дизлайк, на дизлайк и т.д
         existingLike.status = newStatus;
+        existingLike.userLogin = userLogin;
         existingLike.addedAt = new Date();
         await this.likeRepository.save(existingLike);
 

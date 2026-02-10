@@ -1,8 +1,8 @@
 import {PostListPaginatedOutput} from "../output/post-list-paginated.output";
-import {PostDocument} from "../../domain/posts.entity";
+import {PostOutput} from "../output/post.output";
 
 export function mapToPostListPaginatedOutput(
-    posts: PostDocument[],
+    items: PostOutput[],
     meta: { pageNumber: number; pageSize: number; totalCount: number }
 ): PostListPaginatedOutput {
     return {
@@ -10,14 +10,6 @@ export function mapToPostListPaginatedOutput(
         page: meta.pageNumber,
         pageSize: meta.pageSize,
         totalCount: meta.totalCount,
-        items: posts.map(post => ({
-            id: post._id.toString(),
-            title: post.title,
-            shortDescription: post.shortDescription,
-            content: post.content,
-            blogId: post.blogId,
-            blogName: post.blogName,
-            createdAt: post.createdAt,
-        })),
+        items: items,
     };
 };

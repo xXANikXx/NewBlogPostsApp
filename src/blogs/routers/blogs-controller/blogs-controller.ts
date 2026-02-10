@@ -106,9 +106,12 @@ export class BlogsController {
 
             const queryInput = req.query;
 
+            const userId = req.user?.id;
+
             const postListOutput = await this.postsQueryService.findPostsByBlog(
                 queryInput,
                 blogId,
+                userId
             )
 
             res.status(HttpStatus.Ok).send(postListOutput);
@@ -134,7 +137,7 @@ export class BlogsController {
             const postOutput = await this.postsQueryService.findByIdOrFail(createPostId)
 
 
-            res.status(HttpStatus.Created).send(postOutput);
+            res.status(HttpStatus.Created).send(postOutput.data);
         } catch (e: unknown) {
             errorHandler(e, res);
         }

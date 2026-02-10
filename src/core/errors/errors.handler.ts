@@ -9,8 +9,17 @@ import {BadRequestError} from "./badReq";
 
 
 export function errorHandler(error: unknown, res: Response): void {
+
+    console.log("🔴 ERROR OCCURRED:", error);
+
     if (res.headersSent) {
         console.log('⚠️ Response already sent, skipping errorHandler');
+        return;
+    }
+
+
+    if (error instanceof Error && (error.name === 'CastError' || error.message.includes('ObjectId'))) {
+        res.sendStatus(HttpStatus.NotFound);
         return;
     }
 
@@ -22,6 +31,16 @@ export function errorHandler(error: unknown, res: Response): void {
                     field: 'id',
                 },
             ],
+        });
+        return;
+    }
+
+    if (error instanceof Error && error.name === 'ValidationError') {
+        res.status(400).send({
+            errorsMessages: Object.values((error as any).errors).map((e: any) => ({
+                message: e.message,
+                field: e.path
+            }))
         });
         return;
     }

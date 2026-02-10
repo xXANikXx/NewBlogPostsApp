@@ -16,6 +16,10 @@ import {
 import {
     UpdateCommentRequestPayload
 } from "../request-payloads/update-comment-request.payload";
+import {ResultStatus} from "../../../common/result/resultCode";
+import {
+    resultCodeToHttpException
+} from "../../../common/result/resultCodeToHttpException";
 
 
 
@@ -23,33 +27,38 @@ import {
 @injectable()
 export class CommentsController {
     constructor(@inject(CommentsService) private commentsService: CommentsService,
-                @inject(CommentQueryService) private commentQueryService: CommentQueryService) {}
+                @inject(CommentQueryService) private commentQueryService: CommentQueryService,) {}
 
 
     public async createCommentsByPostHandler(
         req: Request<{id: string}, {}, CreateCommentsByPostRequestPayload>,
         res: Response,
     ) {
-        try {
-            if (!req.user) return res.sendStatus(HttpStatus.Unauthorized);
+        if (!req.user) return res.sendStatus(HttpStatus.Unauthorized);
 
-            const postId = req.params.id;
+        const command: CreateCommentsByPostCommand = {
+            postId: req.params.id,
+            content: req.body.content,
+            userId: req.user.id,
+            userLogin: req.user.login,
+        };
 
-            const command: CreateCommentsByPostCommand = {
-                postId,
-                content: req.body.content,
-                userId: req.user.id,
-                userLogin: req.user.login,
-            };
+        const createResult = await this.commentsService.createCommentsByPost(command);
 
-            const createCommentId = await this.commentsService.createCommentsByPost(command);
-
-            const commentOutput = await this.commentQueryService.findByIdOrFail(createCommentId)
-
-            res.status(HttpStatus.Created).send(commentOutput);
-        } catch(e: unknown) {
-            errorHandler(e, res);
+        if (createResult.status !== ResultStatus.Success || !createResult.data) {
+            return res.status(resultCodeToHttpException(createResult.status)).send({
+                errorsMessages: createResult.extensions
+            });
         }
+
+        const commentResult = await this.commentQueryService.findByIdOrFail(createResult.data, req.user.id);
+
+        if (commentResult.status !== ResultStatus.Success) {
+            return res.status(resultCodeToHttpException(commentResult.status)).send({
+                errorsMessages: commentResult.extensions
+            });
+        }
+        res.status(HttpStatus.Created).send(commentResult.data);
     }
 
     public async deleteCommentHandler(
@@ -69,35 +78,32 @@ export class CommentsController {
 
     public async getCommentHandler(req: Request<{id: string}>,
                                    res: Response,) {
-        try {
-            const id = req.params.id;
-
-            const commentOutput = await this.commentQueryService.findByIdOrFail(id);
-
-            res.status(HttpStatus.Ok).send(commentOutput);
-        } catch (e: unknown) {
-            errorHandler(e, res);
+        const result = await this.commentQueryService.findByIdOrFail(req.params.id, req.user?.id);
+        if (result.status !== ResultStatus.Success) {
+            return res.status(resultCodeToHttpException(result.status)).send({
+                errorsMessages: result.extensions
+            });
         }
+        res.status(HttpStatus.Ok).send(result.data);
+
     }
 
     public async getCommentsByPostHandler(
         req: Request<{id:string}, {}, {}, CommentListRequestPayload>,
         res: Response,
     ) {
-        try {
-            const postId = req.params.id;
+        const result = await this.commentQueryService.findCommentsByPost(
+            req.query,
+            req.params.id,
+            req.user?.id
+        );
 
-            const queryInput = req.query;
-
-            const commentListOutput = await this.commentQueryService.findCommentsByPost(
-                queryInput,
-                postId,
-            )
-
-            res.status(HttpStatus.Ok).send(commentListOutput);
-        } catch (e: unknown) {
-            errorHandler(e, res);
+        if (result.status !== ResultStatus.Success) {
+            return res.status(resultCodeToHttpException(result.status)).send({
+                errorsMessages: result.extensions
+            });
         }
+        res.status(HttpStatus.Ok).send(result.data);
     }
 
     public async updateCommentHandler(

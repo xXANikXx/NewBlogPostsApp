@@ -9,6 +9,8 @@ import {CommentsRepository} from "../repositoriesComments/comment.repository";
 import {ForbiddenError} from "../../core/errors/forbidden.Error";
 import {inject, injectable} from "inversify";
 import {CommentModel} from "../domain/comment.entity";
+import {ResultStatus} from "../../common/result/resultCode";
+import {Result} from "../../common/result/result.type";
 
 @injectable()
 export class CommentsService {
@@ -44,21 +46,30 @@ export class CommentsService {
         await this.commentsRepository.delete(id);
     }
 
-    async createCommentsByPost(dto: CreateCommentsByPostCommand): Promise<string> {
-    await this.postsRepository.findByIdOrFail(dto.postId)
+    async createCommentsByPost(dto: CreateCommentsByPostCommand): Promise<Result<string>> {
+    const post = await this.postsRepository.findByIdOrFail(dto.postId)
+
+        if (!post) {
+            return {
+                status: ResultStatus.NotFound,
+                extensions: [{ field: 'postId', message: 'Post not found' }],
+                data: null
+            };
+        }
 
         const newComment = new CommentModel({
             content: dto.content,
-            commentatorInfo: {
-                userId: dto.userId,
-                userLogin: dto.userLogin,
-            },
-            createdAt: new Date().toISOString(),
+            commentatorInfo: { userId: dto.userId, userLogin: dto.userLogin },
             postId: dto.postId,
-        })
+            createdAt: new Date()
+        });
 
-        const createdCommentsByBlog = await this.commentsRepository.save(newComment);
+        const createdComment = await this.commentsRepository.save(newComment);
 
-        return createdCommentsByBlog._id!.toString();
+        return {
+            status: ResultStatus.Success,
+            extensions: [],
+            data: createdComment._id.toString()
+        };
     }
 }

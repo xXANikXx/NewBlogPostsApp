@@ -16,12 +16,17 @@ import {
 import {
     UpdatePostRequestPayload
 } from "../request-payloads/update-post-request.payload";
+import {ResultStatus} from "../../../common/result/resultCode";
+import {
+    resultCodeToHttpException
+} from "../../../common/result/resultCodeToHttpException";
 
 
 @injectable()
 export class PostsController {
     constructor(@inject(PostsService) private postsService: PostsService,
-                @inject(PostsQueryService) private postsQueryService: PostsQueryService) {}
+                @inject(PostsQueryService) private postsQueryService: PostsQueryService) {
+    }
 
     public async createPostHandler(
         req: Request<{}, {}, CreatePostRequestPayload>,
@@ -31,15 +36,21 @@ export class PostsController {
 
             const createPostId = await this.postsService.create(req.body);
 
-            const postOutput = await this.postsQueryService.findByIdOrFail(createPostId)
+            const result = await this.postsQueryService.findByIdOrFail(createPostId)
 
-            res.status(HttpStatus.Created).send(postOutput);
+            if (result.status !== ResultStatus.Success) {
+                return res.status(resultCodeToHttpException(result.status)).send({
+                    errorsMessages: result.extensions
+                });
+            }
+
+            res.status(HttpStatus.Created).send(result.data);
         } catch (e: unknown) {
             errorHandler(e, res);
         }
     }
 
-    public async deletePost(req: Request<{id: string}>,
+    public async deletePost(req: Request<{ id: string }>,
                             res: Response) {
         try {
             const id = req.params.id;
@@ -47,47 +58,44 @@ export class PostsController {
             await this.postsService.delete(id)
             res.sendStatus(HttpStatus.NoContent);
         } catch (e: unknown) {
-            errorHandler(e,res);
+            errorHandler(e, res);
         }
     }
 
     public async getPostListHandler(
         req: Request<{}, {}, {}, PostListRequestPayload>,
         res: Response,
-    ) {
-        try {
+    ){
+        const userId = req.user?.id;
+        const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
 
-            const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
+        // Передаем userId, чтобы каждый пост в списке имел корректный LikeStatus
+        const postListOutput = await this.postsQueryService.findMany(queryInput, userId);
 
-            const postListOutput = await this.postsQueryService.findMany(queryInput);
-
-            res.status(HttpStatus.Ok).send(postListOutput);
-
-        } catch (e: unknown) {
-            errorHandler(e, res);
-        }
+        res.status(HttpStatus.Ok).send(postListOutput);
     }
 
-    public async getPostHandler(req: Request, res: Response) {
-        try {
-            const id = req.params.id;
+    public async getPostHandler(req: Request<{ id: string }>, res: Response) {
+        const id = req.params.id;
+        const userId = req.user?.id;
 
+        const result = await this.postsQueryService.findByIdOrFail(id, userId);
 
-            const postOutput = await this.postsQueryService.findByIdOrFail(id);
-
-            res.status(HttpStatus.Ok).send(postOutput);
-        } catch (e: unknown) {
-            errorHandler(e, res);
+        if (result.status !== ResultStatus.Success) {
+            return res.status(resultCodeToHttpException(result.status)).send({
+                errorsMessages: result.extensions
+            });
         }
+
+        res.status(HttpStatus.Ok).send(result.data);
     }
+
 
     public async updatePostHandler(
         req: Request<{ id: string }, {}, UpdatePostRequestPayload>,
         res: Response
     ) {
         try{
-            const id = req.params.id;
-
             await this.postsService.update({
                 id: req.params.id,
                 ...req.body,
@@ -98,6 +106,7 @@ export class PostsController {
             errorHandler(e,res);
         }
     }
+
 
 }
 

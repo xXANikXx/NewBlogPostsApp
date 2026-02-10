@@ -15,6 +15,7 @@ export type LikeDto = {
     entityId: string;        //айди сущности
     entityType: EntityType; //тип сущности, делаю для большего контроля
     userId: string;
+    userLogin: string;
     status: LikeStatus;
     addedAt: Date;
 }
@@ -32,6 +33,7 @@ export const LikeSchema = new mongoose.Schema({
     entityId: {type: String, required: true},
     entityType: { type: String, enum: Object.values(EntityType), required: true },
     userId: {type: String, required: true},
+    userLogin: {type: String, required: true},
     status: {type: String, enum: Object.values(LikeStatus), required: true},
     addedAt: {type: Date, required: true, default: Date.now},
 })

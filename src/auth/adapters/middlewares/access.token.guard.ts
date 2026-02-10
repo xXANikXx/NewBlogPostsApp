@@ -2,11 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import {HttpStatus} from "../../../core/typesAny/http-statuses";
 import {inject, injectable} from "inversify";
 import {JwtService} from "../jwt.service";
+import {
+    UsersRepository
+} from "../../../users/repositoriesUsers/users.repository";
 
 @injectable()
 export class AccessTokenGuard {
 
-    constructor(@inject(JwtService) private jwtService: JwtService) {}
+    constructor(@inject(JwtService) private jwtService: JwtService,
+                @inject(UsersRepository) private usersRepository: UsersRepository) {}
 
     public handle = async (req: Request, res: Response, next: NextFunction) => {
         const authHeader = req.headers.authorization;
@@ -29,8 +33,16 @@ export class AccessTokenGuard {
 
         if (!payload) return res.sendStatus(HttpStatus.Unauthorized);
 
-        const {userId, userLogin} = payload;
-        req.user = {id: userId, login: userLogin};
+        const user = await this.usersRepository.findByIdOrFail(payload.userId);
+        if (!user) return res.sendStatus(401);
+
+        req.user = {
+            id: user._id.toString(),
+            login: user.login // Теперь логин точно не undefined
+        };
+
+        // const {userId, userLogin} = payload;
+        // req.user = {id: userId, login: userLogin};
 
         next();
     };

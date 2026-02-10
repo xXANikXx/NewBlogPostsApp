@@ -7,13 +7,15 @@ import {
 import {PostsRepository} from "../repositoriesPosts/posts.repository";
 import {inject, injectable} from "inversify";
 import {PostModel} from "../domain/posts.entity";
+import {PostsQueryRepository} from "../repositoriesPosts/post.query.repository";
 
 
 @injectable()
 export class PostsService {
 
     constructor(@inject(PostsRepository) private postsRepository: PostsRepository,
-    @inject(BlogsRepository) private blogsRepository: BlogsRepository) {
+    @inject(BlogsRepository) private blogsRepository: BlogsRepository,
+                @inject(PostsQueryRepository) private postsQueryRepository: PostsQueryRepository,) {
     }
 
     async create(dto: CreatePostCommand): Promise<string> {
@@ -69,4 +71,5 @@ export class PostsService {
         await this.postsRepository.delete(id);
         return;
     }
+
 }

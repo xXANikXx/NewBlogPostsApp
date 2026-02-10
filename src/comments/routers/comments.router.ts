@@ -13,6 +13,9 @@ import {container} from "../../composition.root";
 import {CommentsController} from "./comments-controller/comments-controller";
 import {LikeController} from "../../likes/router/like-controller";
 import {likeStatusValidation} from "../../likes/router/validation/validation";
+import {
+    NoneStatusGuard
+} from "../../auth/adapters/middlewares/none-status.guard";
 
 
 export const commentRouter = Router({});
@@ -20,9 +23,11 @@ export const commentRouter = Router({});
 const controller = container.get(CommentsController);
 const accessTokenGuard = container.get(AccessTokenGuard);
 const likeController = container.get(LikeController);
+const noneStatusGuard = container.get(NoneStatusGuard);
+
 
 commentRouter
-    .get("/:id", idValidation, inputValidationResultMiddleware, controller.getCommentHandler.bind(controller))
+    .get("/:id", noneStatusGuard.handle.bind(noneStatusGuard), idValidation, inputValidationResultMiddleware, controller.getCommentHandler.bind(controller))
     .put("/:id", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, commentInputDtoValidation, inputValidationResultMiddleware, controller.updateCommentHandler.bind(controller))
     .delete("/:id", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, inputValidationResultMiddleware, controller.deleteCommentHandler.bind(controller))
-    .put("/:id/like-status", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, likeStatusValidation, inputValidationResultMiddleware, likeController.likeHandler.bind(likeController)  )
+    .put("/:id/like-status", accessTokenGuard.handle.bind(accessTokenGuard), idValidation, likeStatusValidation, inputValidationResultMiddleware, likeController.commentLikeHandler.bind(likeController)  )

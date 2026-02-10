@@ -14,4 +14,4 @@ export const PostSchema = new mongoose.Schema({
     createdAt: {type: String, required: true},
 })
 
-export const PostModel = model<PostDomainDto, PostModelType>('posts', PostSchema);
+export const PostModel = model<PostDocument, PostModelType>('posts', PostSchema);

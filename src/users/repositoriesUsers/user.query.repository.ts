@@ -90,7 +90,7 @@ export class UserQueryRepository {
 
     async findByLogin(login: string): Promise<UserDocument | null> { // Лучше возвращать доменную сущность
         const found = await UserModel.findOne({ login });
-        // ✅ Если найден, преобразуем в доменную сущность (или DTO), иначе null
+        // Если найден, преобразуем в доменную сущность (или DTO), иначе null
         return found;
     }
 
