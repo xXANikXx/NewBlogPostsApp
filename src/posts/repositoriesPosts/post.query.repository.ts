@@ -38,12 +38,29 @@ export class PostsQueryRepository {
                     _id: "$entityId",
                     likesCount: { $sum: { $cond: [{ $eq: ["$status", LikeStatus.Like] }, 1, 0] } },
                     dislikesCount: { $sum: { $cond: [{ $eq: ["$status", LikeStatus.Dislike] }, 1, 0] } },
-                    newestLikes: { $push: { userId: "$userId", userLogin: "$userLogin", addedAt: "$addedAt" } }
+                    // Добавляем status сюда! Без него фильтр в $project не сработает
+                    allLikes: { $push: {
+                            userId: "$userId",
+                            userLogin: "$userLogin",
+                            addedAt: "$addedAt",
+                            status: "$status"
+                        } }
                 }},
             { $project: {
                     likesCount: 1,
                     dislikesCount: 1,
-                    newestLikes: { $slice: ["$newestLikes", 3] } // Отрезаем только 3
+                    newestLikes: {
+                        $slice: [
+                            {
+                                $filter: {
+                                    input: "$allLikes",
+                                    as: "l",
+                                    cond: { $eq: ["$$l.status", LikeStatus.Like] }
+                                }
+                            },
+                            3
+                        ]
+                    }
                 }}
         ]);
 
