@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "powershell.exe",
+      "args": [
+        "-Command",
+        "&\n     \" C:\\Program Files\\nodejs\\npx.cmd\\\n",
+        "'@playwright/mcp@latest'"
+      ]
+    }
+  }
+}
