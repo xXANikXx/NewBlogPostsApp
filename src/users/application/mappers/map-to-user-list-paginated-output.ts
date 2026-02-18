@@ -1,5 +1,5 @@
 import {UserListPaginatedOutput} from "../output/user-list-paginated.output";
-import {UserDocument} from "../../domain/user.entity";
+import {UserDocument} from "../../domain/user.schema";
 
 
 export function mapToUserListPaginatedOutput(

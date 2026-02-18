@@ -13,6 +13,7 @@ import {
 import {
     setDefaultSortAndPaginationIfNotExist
 } from "../../../core/helpers/set-default-sort-and-pagination";
+import {ResultStatus} from "../../../common/result/resultCode";
 
 
 
@@ -25,22 +26,25 @@ export class UsersController {
         req: Request<{}, {}, CreateUserRequestPayload>,
         res: Response,
     ) {
-        try {
-            const newUserId = await this.usersService.create(req.body);
+            const result = await this.usersService.create(req.body);
 
-            const createdUser = await this.userQueryService.findByIdOrFail(newUserId);
+            if (result.status !== ResultStatus.Success) {
+                // Если сервис создания вернул ошибку (например, логин занят)
+                return res.status(HttpStatus.BadRequest).send(result);
+            }
 
-            res.status(HttpStatus.Created).send(createdUser);
+// Если создание успешно, запрашиваем данные для ответа
+            const queryResult = await this.userQueryService.findByIdOrFail(result.data!);
 
-        } catch (e: unknown) {
-            errorHandler(e, res);
-        }
+            if (queryResult.status === ResultStatus.Success) {
+                res.status(HttpStatus.Created).send(queryResult.data);
+            }
     }
 
     public async  deleteUserHandler(req: Request<{id:string}>,
                                     res: Response,) {
         try {
-            const id = req.params.id;;
+            const id = req.params.id;
             await this.usersService.delete(id);
 
             res.sendStatus(HttpStatus.NoContent);

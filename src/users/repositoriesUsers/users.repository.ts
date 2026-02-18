@@ -2,7 +2,7 @@ import {
     RepositoryNotFoundError
 } from "../../core/errors/repository-not-found.error";
 import {injectable} from "inversify";
-import {UserDocument, UserModel} from "../domain/user.entity";
+import {UserDocument, UserModel} from "../domain/user.schema";
 
 @injectable()
 export class UsersRepository {

@@ -14,7 +14,7 @@ import {
     DEFAULT_PAGE_NUMBER,
     DEFAULT_PAGE_SIZE, DEFAULT_SORT_BY
 } from "../../core/middlewares/query-pagination-sorting.validation-middleware";
-import {UserDocument, UserModel} from "../domain/user.entity";
+import {UserDocument, UserModel} from "../domain/user.schema";
 
 
 

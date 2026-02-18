@@ -17,7 +17,7 @@ import {
 } from "../../../users/repositoriesUsers/user.query.repository";
 import {BcryptService} from "../../adapters/crypto/password-hasher";
 import {inject, injectable} from "inversify";
-import {UserDocument, UserModel} from "../../../users/domain/user.entity";
+import {UserDocument, UserModel} from "../../../users/domain/user.schema";
 
 @injectable()
 export class AuthService {
@@ -196,117 +196,202 @@ export class AuthService {
         };
     }
 
+    // async registerUser(
+    //     login: string,
+    //     password: string,
+    //     email: string,
+    // ): Promise<Result<null>> {
+    //
+    //     console.log(' [registerUser] START with:', { login, email });
+    //
+    //     const loginExists = await this.userQueryRepository.findByLogin(login);
+    //     if (loginExists) {
+    //
+    //         console.log(' [registerUser] Login already taken:', login);
+    //
+    //         return {
+    //             status: ResultStatus.BadRequest,
+    //             errorMessage: 'User already exists',
+    //             data: null,
+    //             extensions: [{ field: 'login', message: 'Login already taken' }],
+    //         };
+    //     }
+    //
+    //     const emailExists = await this.userQueryRepository.findByEmail(email);
+    //     if (emailExists) {
+    //
+    //         console.log('[registerUser] Email already registered:', email);
+    //
+    //         return {
+    //             status: ResultStatus.BadRequest,
+    //             errorMessage: 'User already exists',
+    //             data: null,
+    //             extensions: [{ field: 'email', message: 'Email already registered' }],
+    //         };
+    //     }
+    //
+    //
+    //
+    //     //проверить существует ли уже юзер с таким логином или почтой и если да - не регистрировать
+    //
+    //     const passwordHash = await this.bcryptService.generateHash(password)//создать хэш пароля
+    //
+    //     console.log('[registerUser] Password hashed successfully');
+    //
+    //
+    //     const newUser = new UserModel({ // сформировать dto юзера
+    //         login,
+    //         email,
+    //         passwordHash,
+    //         createdAt: new Date().toISOString(),
+    //         emailConfirmation: {    // доп поля необходимые для подтверждения
+    //             confirmationCode: randomUUID(),
+    //             expirationDate: add(new Date(), {
+    //                 hours: 1,
+    //                 minutes: 30,
+    //             }),
+    //             isConfirmed: false
+    //         },
+    //         passwordRecovery: {
+    //             recoveryCode: null,
+    //             expirationDate: null,
+    //         },
+    //     });
+    //
+    //
+    //     console.log('[registerUser] newUser before save:', JSON.stringify(newUser, null, 2));
+    //
+    //
+    //     await this.usersRepository.save(newUser);
+    //
+    //
+    //     console.log('[registerUser] user saved successfully with confirmationCode:',
+    //         newUser.emailConfirmation.confirmationCode
+    //     );
+    //
+    //     //отправку сообщения лучше обернуть в try-catch, чтобы при ошибке(например отвалиться отправка) приложение не падало
+    //     try {
+    //
+    //         console.log('[registerUser] Sending email to:', newUser.email);
+    //
+    //
+    //         await this.nodemailerService.sendEmail(//отправить сообщение на почту юзера с кодом подтверждения
+    //             newUser.email,
+    //             newUser.emailConfirmation.confirmationCode,
+    //             emailExamples.registrationEmail);
+    //
+    //         console.log('[registerUser] Email sent successfully');
+    //
+    //
+    //     } catch (e: unknown) {
+    //         console.error('Send email error', e); //залогировать ошибку при отправке сообщения
+    //     }
+    //     return {
+    //         status: ResultStatus.Success,
+    //         data: null,
+    //         extensions: [],
+    //     };
+    // }
+
     async registerUser(
-        login: string,
-        password: string,
-        email: string,
-    ): Promise<Result<null>> {
-
-        console.log(' [registerUser] START with:', { login, email });
-
-        const loginExists = await this.userQueryRepository.findByLogin(login);
-        if (loginExists) {
-
-            console.log(' [registerUser] Login already taken:', login);
-
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'User already exists',
-                data: null,
-                extensions: [{ field: 'login', message: 'Login already taken' }],
-            };
-        }
-
-        const emailExists = await this.userQueryRepository.findByEmail(email);
-        if (emailExists) {
-
-            console.log('[registerUser] Email already registered:', email);
-
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'User already exists',
-                data: null,
-                extensions: [{ field: 'email', message: 'Email already registered' }],
-            };
-        }
-
-
-
-        //проверить существует ли уже юзер с таким логином или почтой и если да - не регистрировать
-
-        const passwordHash = await this.bcryptService.generateHash(password)//создать хэш пароля
-
-        console.log('[registerUser] Password hashed successfully');
-
-
-        const newUser = new UserModel({ // сформировать dto юзера
-            login,
-            email,
-            passwordHash,
-            createdAt: new Date().toISOString(),
-            emailConfirmation: {    // доп поля необходимые для подтверждения
-                confirmationCode: randomUUID(),
-                expirationDate: add(new Date(), {
-                    hours: 1,
-                    minutes: 30,
-                }),
-                isConfirmed: false
-            },
-            passwordRecovery: {
-                recoveryCode: null,
-                expirationDate: null,
-            },
-        });
-
-
-        console.log('[registerUser] newUser before save:', JSON.stringify(newUser, null, 2));
-
-
-        await this.usersRepository.save(newUser);
-
-
-        console.log('[registerUser] user saved successfully with confirmationCode:',
-            newUser.emailConfirmation.confirmationCode
-        );
-
-        //отправку сообщения лучше обернуть в try-catch, чтобы при ошибке(например отвалиться отправка) приложение не падало
-        try {
-
-            console.log('[registerUser] Sending email to:', newUser.email);
-
-
-            await this.nodemailerService.sendEmail(//отправить сообщение на почту юзера с кодом подтверждения
-                newUser.email,
-                newUser.emailConfirmation.confirmationCode,
-                emailExamples.registrationEmail);
-
-            console.log('[registerUser] Email sent successfully');
-
-
-        } catch (e: unknown) {
-            console.error('Send email error', e); //залогировать ошибку при отправке сообщения
-        }
+    login: string,
+    password: string,
+    email: string,
+): Promise<Result<null>> {
+    // 1. Проверки на уникальность (оставляем как есть)
+    const loginExists = await this.userQueryRepository.findByLogin(login);
+    if (loginExists) {
         return {
-            status: ResultStatus.Success,
+            status: ResultStatus.BadRequest,
+            errorMessage: 'User already exists',
             data: null,
-            extensions: [],
+            extensions: [{ field: 'login', message: 'Login already taken' }],
         };
     }
 
-    async confirmEmail(code: string): Promise<Result<any>> {
+    const emailExists = await this.userQueryRepository.findByEmail(email);
+    if (emailExists) {
+        return {
+            status: ResultStatus.BadRequest,
+            errorMessage: 'User already exists',
+            data: null,
+            extensions: [{ field: 'email', message: 'Email already registered' }],
+        };
+    }
 
-        const isUuid = new RegExp(
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        ).test(code);
+    // 2. Хеширование
+    const passwordHash = await this.bcryptService.generateHash(password);
 
-        if (!isUuid) {
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'Bad Request',
-                data: null,
-                extensions: [{ field: 'code', message: 'Incorrect code' }],
-            };
-        }
+    // 3. Вызов доменной фабрики
+    // Мы просто передаем чистые данные, сущность сама знает, что с ними делать
+    const newUser = UserModel.createUserByRegistration(login, email, passwordHash);
+
+    // 4. Сохранение (Active Record стиль)
+    await this.usersRepository.save(newUser);
+
+    // 5. Отправка Email (остается без изменений)
+    try {
+        await this.nodemailerService.sendEmail(
+            newUser.email,
+            newUser.emailConfirmation.confirmationCode,
+            emailExamples.registrationEmail
+        );
+    } catch (e: unknown) {
+        console.error('Send email error', e);
+    }
+
+    return {
+        status: ResultStatus.Success,
+        data: null,
+        extensions: [],
+    };
+}
+
+    // async confirmEmail(code: string): Promise<Result<any>> {
+    //
+    //     const isUuid = new RegExp(
+    //         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    //     ).test(code);
+    //
+    //     if (!isUuid) {
+    //         return {
+    //             status: ResultStatus.BadRequest,
+    //             errorMessage: 'Bad Request',
+    //             data: null,
+    //             extensions: [{ field: 'code', message: 'Incorrect code' }],
+    //         };
+    //     }
+    //
+    //     const user = await this.userQueryRepository.findByConfirmationCode(code);
+    //     if (!user) {
+    //         return {
+    //             status: ResultStatus.BadRequest,
+    //             errorMessage: 'Bad Request',
+    //             data: null,
+    //             extensions: [{ field: 'code', message: 'Incorrect or expired code' }],
+    //         };
+    //     }
+    //     // Проверяем, что email ещё не подтверждён
+    //     if (user.emailConfirmation.isConfirmed) {
+    //         return {
+    //             status: ResultStatus.BadRequest,
+    //             errorMessage: 'Bad Request',
+    //             data: null,
+    //             extensions: [{ field: 'code', message: 'Email already confirmed' }],
+    //         };
+    //     }
+    //
+    //     user.emailConfirmation.isConfirmed = true;
+    //     await this.usersRepository.save(user);
+    //
+    //     return {
+    //         status: ResultStatus.Success,
+    //         data: null,
+    //         extensions: [],
+    //     };
+    // }
+
+     async confirmEmail(code: string): Promise<Result<any>> {
 
         const user = await this.userQueryRepository.findByConfirmationCode(code);
         if (!user) {
@@ -317,17 +402,8 @@ export class AuthService {
                 extensions: [{ field: 'code', message: 'Incorrect or expired code' }],
             };
         }
-        // Проверяем, что email ещё не подтверждён
-        if (user.emailConfirmation.isConfirmed) {
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'Bad Request',
-                data: null,
-                extensions: [{ field: 'code', message: 'Email already confirmed' }],
-            };
-        }
-
-        user.emailConfirmation.isConfirmed = true;
+         try{
+        user.confirmEmail(code);
         await this.usersRepository.save(user);
 
         return {
@@ -335,55 +411,106 @@ export class AuthService {
             data: null,
             extensions: [],
         };
+        } catch (e: any) {
+        return {
+            status: ResultStatus.BadRequest,
+            errorMessage: 'Bad Request',
+            data: null,
+            extensions: [{ field: 'code', message: e.message }],
+        };
+        }
     }
+
+
+//     async resendEmail(email: string): Promise<Result<any>> {
+//         const userData = await this.usersRepository.findByLoginOrEmail(email);
+//
+//         if (!userData) {
+//             return {
+//                 status: ResultStatus.BadRequest,
+//                 errorMessage: 'Bad Request',
+//                 data: null,
+//                 extensions: [
+//                     { field: 'email', message: 'User not found' },
+//                 ],
+//             }
+//         }
+//
+// const user = userData;
+//
+//         if (user.emailConfirmation.isConfirmed) {
+//             return {
+//                 status: ResultStatus.BadRequest,
+//                 errorMessage: 'Bad Request',
+//                 data: null,
+//                 extensions: [
+//                     { field: 'email', message: 'Email already confirmed' }]
+//             }
+//         }
+//
+//         user.emailConfirmation.confirmationCode = randomUUID();
+//         user.emailConfirmation.expirationDate = add(new Date(), { hours: 1, minutes: 30 });
+//
+//         await this.usersRepository.save(user);
+//
+//         try {
+//             await this.nodemailerService.sendEmail(
+//                 user.email,
+//                 user.emailConfirmation.confirmationCode,
+//                 emailExamples.registrationEmail
+//             );
+//         } catch (e) {
+//             console.error('Send email error', e);
+//         }
+//
+//         return {
+//             status: ResultStatus.Success,
+//             data: null,
+//             extensions: [],
+//         };
+//     }
 
     async resendEmail(email: string): Promise<Result<any>> {
-        const userData = await this.usersRepository.findByLoginOrEmail(email);
+    const user = await this.usersRepository.findByLoginOrEmail(email);
 
-        if (!userData) {
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'Bad Request',
-                data: null,
-                extensions: [
-                    { field: 'email', message: 'User not found' },
-                ],
-            }
-        }
+    if (!user) {
+        return {
+            status: ResultStatus.BadRequest,
+            errorMessage: 'Bad Request',
+            data: null,
+            extensions: [{ field: 'email', message: 'User not found' }],
+        };
+    }
 
-const user = userData;
+    try {
+        // Просим сущность обновить код. Если что-то не так, она "выбросит" ошибку.
+        user.updateConfirmationCode();
 
-        if (user.emailConfirmation.isConfirmed) {
-            return {
-                status: ResultStatus.BadRequest,
-                errorMessage: 'Bad Request',
-                data: null,
-                extensions: [
-                    { field: 'email', message: 'Email already confirmed' }]
-            }
-        }
-
-        user.emailConfirmation.confirmationCode = randomUUID();
-        user.emailConfirmation.expirationDate = add(new Date(), { hours: 1, minutes: 30 });
-
+        // Если дошли сюда, значит ошибок не было — сохраняем изменения
         await this.usersRepository.save(user);
 
-        try {
-            await this.nodemailerService.sendEmail(
-                user.email,
-                user.emailConfirmation.confirmationCode,
-                emailExamples.registrationEmail
-            );
-        } catch (e) {
-            console.error('Send email error', e);
-        }
+        // Отправляем письмо
+        await this.nodemailerService.sendEmail(
+            user.email,
+            user.emailConfirmation.confirmationCode,
+            emailExamples.registrationEmail
+        );
 
         return {
             status: ResultStatus.Success,
             data: null,
             extensions: [],
         };
+    } catch (e: any) {
+        // Ловим ошибку "Email already confirmed" из сущности
+        return {
+            status: ResultStatus.BadRequest,
+            errorMessage: 'Bad Request',
+            data: null,
+            extensions: [{ field: 'email', message: e.message }],
+        };
     }
+}
 
     async logout(userId: string, deviceId: string): Promise<Result<null>> {
         const isDeleted = await this.sessionRepository.deleteByDeviceId(deviceId, userId);

@@ -7,7 +7,7 @@ import {CommentModel} from "../../comments/domain/comment.entity";
 import {SessionModel} from "../../auth/authorization/domain/session.entity";
 import {BlogModel} from "../../blogs/domain/blog.entity";
 import {PostModel} from "../../posts/domain/posts.entity";
-import {UserModel} from "../../users/domain/user.entity";
+import {UserModel} from "../../users/domain/user.schema";
 
 
 
